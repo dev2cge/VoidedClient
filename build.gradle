@@ -23,4 +23,13 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
     }
+    tasks.withType(Jar).configureEach {
+        from(rootProject.file('LICENSE.md')) {
+            into 'META-INF'
+            rename { 'VOIDEDCLIENT-LICENSE.md' }
+        }
+        from(rootProject.file('THIRD-PARTY-NOTICES.md')) {
+            into 'META-INF'
+        }
+    }
 }

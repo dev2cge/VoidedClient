@@ -24,10 +24,10 @@ The result must exactly match the filename and hash published with that release.
 With GitHub CLI installed and authenticated:
 
 ```bash
-gh attestation verify VoidedClient-Fabric-26.2-1.7.1.jar --repo OWNER/REPOSITORY
+gh attestation verify VoidedClient-Fabric-26.2-1.7.1.jar --repo dev2cge/VoidedClient
 ```
 
-Replace `OWNER/REPOSITORY` with the official public source repository. A valid result ties the artifact to its source commit and release workflow.
+A valid result ties the artifact to the official [`dev2cge/VoidedClient`](https://github.com/dev2cge/VoidedClient) source commit and release workflow.
 
 ## Rebuild from source
 

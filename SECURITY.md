@@ -6,7 +6,7 @@ Security fixes are provided for the latest VoidedClient 1.7.x release. Older bin
 
 ## Reporting a vulnerability
 
-Do not post an exploitable vulnerability, credential or private server detail in a public issue. Use the source repository's private security-advisory feature and include:
+Do not post an exploitable vulnerability, credential or private server detail in a public issue. Use the [private security-advisory form](https://github.com/dev2cge/VoidedClient/security/advisories/new) and include:
 
 - affected VoidedClient version and loader;
 - reproduction steps;

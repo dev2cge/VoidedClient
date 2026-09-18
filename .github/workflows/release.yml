@@ -13,9 +13,22 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - name: Check out tagged source
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Confirm tag matches project version
+        shell: bash
+        run: |
+          project_version="$(sed -n 's/^version=//p' gradle.properties | head -n 1)"
+          expected_tag="client-v${project_version}"
+          if [ "$GITHUB_REF_NAME" != "$expected_tag" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match gradle.properties version $project_version." >&2
+            exit 1
+          fi
 
       - name: Validate Gradle wrapper
         uses: gradle/actions/wrapper-validation@v4
@@ -50,6 +63,7 @@ jobs:
           find fabric/build/libs forge/build/libs -maxdepth 1 -type f -name '*.jar' \
             ! -name '*-sources.jar' ! -name '*-dev.jar' -exec cp {} release/ \;
           cp SHA256SUMS.txt release/
+          cp LICENSE.md PRIVACY.md PROTOCOL.md VERIFYING-RELEASES.md release/
 
       - name: Attest release provenance
         uses: actions/attest-build-provenance@v2

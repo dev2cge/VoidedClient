@@ -2,6 +2,8 @@
 
 Optional VoidedNetwork client companion for Minecraft 26.2.
 
+Official source and releases: <https://github.com/dev2cge/VoidedClient>
+
 VoidedClient is optional, source-available and server-authoritative. Players without it retain the vanilla chat and command fallbacks and are never kicked or restricted for not installing it.
 
 ## Trust and safety
