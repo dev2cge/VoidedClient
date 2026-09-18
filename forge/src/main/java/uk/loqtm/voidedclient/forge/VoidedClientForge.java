@@ -33,6 +33,7 @@ public final class VoidedClientForge {
             .optionalServer()
             .payloadChannel()
             .play()
+            .bidirectional()
             .add(TYPE, RawPayload.CODEC, VoidedClientForge::handlePayload)
             .build();
     private static final long REPAIR_REPEAT_MS = 350L;
