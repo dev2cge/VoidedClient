@@ -44,7 +44,7 @@ jobs:
         run: bash scripts/create-checksums.sh
 
       - name: Upload reviewable build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: VoidedClient-${{ github.sha }}
           if-no-files-found: error

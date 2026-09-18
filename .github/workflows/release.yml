@@ -68,7 +68,7 @@ jobs:
           gh release upload "$GITHUB_REF_NAME" release/*
 
       - name: Upload CI archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: VoidedClient-${{ github.ref_name }}
           if-no-files-found: error
