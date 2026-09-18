@@ -1,0 +1,26 @@
+plugins { id 'net.minecraftforge.gradle' version '7.0.17' }
+
+base { archivesName = 'VoidedClient-Forge-26.2' }
+java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }
+
+repositories {
+    minecraft.mavenizer(it)
+    maven fg.forgeMaven
+    maven fg.minecraftLibsMaven
+    mavenCentral()
+}
+
+dependencies {
+    implementation minecraft.dependency("net.minecraftforge:forge:${minecraft_version}-${forge_version}")
+    implementation project(':common')
+}
+
+processResources {
+    inputs.property 'version', project.version
+    inputs.property 'minecraft_version', minecraft_version
+    filesMatching('META-INF/mods.toml') {
+        expand 'version': project.version, 'minecraft_version': minecraft_version
+    }
+}
+
+tasks.named('jar') { from project(':common').sourceSets.main.output }

@@ -1,0 +1,55 @@
+name: Build and verify VoidedClient
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Restore wrapper executable bit
+        run: chmod +x gradlew
+
+      - name: Audit runtime source
+        run: bash scripts/security-audit.sh
+
+      - name: Scan repository for committed secrets
+        run: bash scripts/secret-scan.sh
+
+      - name: Build clean Fabric and Forge artifacts
+        run: ./gradlew --no-daemon --stacktrace clean :fabric:build :forge:build
+
+      - name: Generate SHA-256 checksums
+        run: bash scripts/create-checksums.sh
+
+      - name: Upload reviewable build
+        uses: actions/upload-artifact@v4
+        with:
+          name: VoidedClient-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 30
+          path: |
+            fabric/build/libs/*.jar
+            forge/build/libs/*.jar
+            SHA256SUMS.txt
