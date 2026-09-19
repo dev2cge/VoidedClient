@@ -19,12 +19,18 @@ import uk.loqtm.voidedclient.protocol.VoidedProtocol;
 import uk.loqtm.voidedclient.protocol.RpgStatsState;
 import uk.loqtm.voidedclient.protocol.RpgHudState;
 import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
+<<<<<<< HEAD
 import uk.loqtm.voidedclient.protocol.ExplorationContractState;
+=======
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
 import uk.loqtm.voidedclient.fabric.gui.RpgStatsScreen;
 import uk.loqtm.voidedclient.fabric.gui.RpgHudRenderer;
 import uk.loqtm.voidedclient.fabric.gui.RpgHudEditorScreen;
 import uk.loqtm.voidedclient.fabric.gui.ExplorationJournalScreen;
+<<<<<<< HEAD
 import uk.loqtm.voidedclient.fabric.gui.ExplorationContractScreen;
+=======
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
 
 import java.nio.charset.StandardCharsets;
 
@@ -72,6 +78,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
             if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) {
                 ExplorationJournalState state = ExplorationJournalState.parse(message);
                 if (state != null) context.client().execute(() ->
+<<<<<<< HEAD
                         context.client().gui.setScreen(new ExplorationJournalScreen(state,
                                 () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_CONTRACT)))));
             }
@@ -80,6 +87,9 @@ public final class VoidedClientFabric implements ClientModInitializer {
                 if (state != null) context.client().execute(() ->
                         context.client().gui.setScreen(new ExplorationContractScreen(state,
                                 () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)))));
+=======
+                        context.client().gui.setScreen(new ExplorationJournalScreen(state)));
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
             }
         });
 
@@ -169,7 +179,11 @@ public final class VoidedClientFabric implements ClientModInitializer {
         String gameVersion;
         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
         catch (Throwable ignored) { gameVersion = "26.2"; }
+<<<<<<< HEAD
         send(VoidedProtocol.hello("fabric", "1.8.2", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT));
+=======
+        send(VoidedProtocol.hello("fabric", "1.8.1", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL));
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
     }
 
     private static void send(byte[] bytes) {

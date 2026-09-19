@@ -57,6 +57,7 @@ Clients advertising `exploration-journal` may request the journal with `VC1|ACTI
 `VC1|EXPLORATION_JOURNAL|totalKills|highestRarityTier|contractName|contractProgress|contractTarget|contractComplete|id,name,discovered,kills;...`
 
 The client only presents this state. Discovery flags, per-creature kills and contract progress are stored and calculated by VoidedCore.
+<<<<<<< HEAD
 
 ## Daily expedition contract (1.8.2)
 
@@ -67,3 +68,5 @@ The server replies with:
 `VC1|EXPLORATION_CONTRACT|type|name|description|progress|target|complete|rewardXp|rewardItem|rewardAmount|minimumTier|date`
 
 All progression and rewards remain server-authoritative. The client only renders the supplied state.
+=======
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734

@@ -17,9 +17,13 @@ import net.minecraftforge.network.ChannelBuilder;
 import org.lwjgl.glfw.GLFW;
 import uk.loqtm.voidedclient.protocol.VoidedProtocol;
 import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
+<<<<<<< HEAD
 import uk.loqtm.voidedclient.protocol.ExplorationContractState;
 import uk.loqtm.voidedclient.forge.gui.ExplorationJournalScreen;
 import uk.loqtm.voidedclient.forge.gui.ExplorationContractScreen;
+=======
+import uk.loqtm.voidedclient.forge.gui.ExplorationJournalScreen;
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
 
 import java.nio.charset.StandardCharsets;
 
@@ -137,8 +141,13 @@ public final class VoidedClientForge {
         String gameVersion;
         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
         catch (Throwable ignored) { gameVersion = "26.2"; }
+<<<<<<< HEAD
         send(VoidedProtocol.hello("forge", "1.8.2", gameVersion,
                 VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT));
+=======
+        send(VoidedProtocol.hello("forge", "1.8.1", gameVersion,
+                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL));
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
     }
 
     private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
@@ -150,6 +159,7 @@ public final class VoidedClientForge {
         }
         if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) {
             ExplorationJournalState state = ExplorationJournalState.parse(message);
+<<<<<<< HEAD
             if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationJournalScreen(state,
                     () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_CONTRACT))));
         }
@@ -157,6 +167,9 @@ public final class VoidedClientForge {
             ExplorationContractState state = ExplorationContractState.parse(message);
             if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationContractScreen(state,
                     () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL))));
+=======
+            if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationJournalScreen(state));
+>>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
         }
     }
 
