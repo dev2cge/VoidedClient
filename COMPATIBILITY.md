@@ -1,5 +1,11 @@
 # Compatibility
 
+## 1.8.1 WASD Dash and exploration journal
+
+- Dash combines validated yaw/pitch with W, A, S and D input. Forward movement may use pitch; backward and sideways movement remains horizontal.
+- Fabric and Forge can request the native server-authoritative Exploration Journal with K.
+- VoidedCore 6.49.1 is required for the new directional payload and journal packet. Older client/Core combinations retain their existing fallbacks.
+
 ## 1.8.0 facing-direction Dash
 
 - Dash sends a yaw/pitch snapshot rather than sampled velocity.

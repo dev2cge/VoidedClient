@@ -18,9 +18,11 @@ import net.minecraft.resources.Identifier;
 import uk.loqtm.voidedclient.protocol.VoidedProtocol;
 import uk.loqtm.voidedclient.protocol.RpgStatsState;
 import uk.loqtm.voidedclient.protocol.RpgHudState;
+import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
 import uk.loqtm.voidedclient.fabric.gui.RpgStatsScreen;
 import uk.loqtm.voidedclient.fabric.gui.RpgHudRenderer;
 import uk.loqtm.voidedclient.fabric.gui.RpgHudEditorScreen;
+import uk.loqtm.voidedclient.fabric.gui.ExplorationJournalScreen;
 
 import java.nio.charset.StandardCharsets;
 
@@ -35,6 +37,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
     private KeyMapping repair;
     private KeyMapping rpgStats;
     private KeyMapping rpgHudLayout;
+    private KeyMapping explorationJournal;
     private KeyMapping powerStrike, bulwark, secondWind, dash, arcaneSurge;
     private long lastRepairSent;
     private long lastStatsSent;
@@ -64,6 +67,11 @@ public final class VoidedClientFabric implements ClientModInitializer {
                 String skill = message.substring("VC1|RPG_FX|".length());
                 context.client().execute(() -> RpgHudRenderer.flash(skill));
             }
+            if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) {
+                ExplorationJournalState state = ExplorationJournalState.parse(message);
+                if (state != null) context.client().execute(() ->
+                        context.client().gui.setScreen(new ExplorationJournalScreen(state)));
+            }
         });
 
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
@@ -83,6 +91,11 @@ public final class VoidedClientFabric implements ClientModInitializer {
                 "key.voidedclient.rpg_hud_layout",
                 InputConstants.Type.KEYSYM,
                 InputConstants.KEY_H,
+                CATEGORY));
+        explorationJournal = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key.voidedclient.exploration_journal",
+                InputConstants.Type.KEYSYM,
+                InputConstants.KEY_K,
                 CATEGORY));
         powerStrike = skillKey("key.voidedclient.skill.power_strike", InputConstants.KEY_Z);
         bulwark = skillKey("key.voidedclient.skill.bulwark", InputConstants.KEY_X);
@@ -113,6 +126,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
                 send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS));
             }
             while (rpgHudLayout.consumeClick()) client.gui.setScreen(new RpgHudEditorScreen());
+            while (explorationJournal.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
             castIfPressed(powerStrike, "power-strike");
             castIfPressed(bulwark, "bulwark");
             castIfPressed(secondWind, "second-wind");
@@ -127,16 +141,18 @@ public final class VoidedClientFabric implements ClientModInitializer {
 
     private static void castIfPressed(KeyMapping mapping, String skill) {
         while (mapping.consumeClick()) {
-            String look = "";
+            String dashInput = "";
             if ("dash".equals(skill)) {
                 try {
                     var player = net.minecraft.client.Minecraft.getInstance().player;
                     if (player != null) {
-                        look = String.format(java.util.Locale.ROOT, "look:%.3f,%.3f", player.getYRot(), player.getXRot());
+                        var movement = player.input.getMoveVector();
+                        dashInput = String.format(java.util.Locale.ROOT, "dash:%.3f,%.3f,%.3f,%.3f",
+                                player.getYRot(), player.getXRot(), movement.x, movement.y);
                     }
                 } catch (Throwable ignored) {}
             }
-            send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_SKILL_CAST, skill, look));
+            send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_SKILL_CAST, skill, dashInput));
         }
     }
 
@@ -144,7 +160,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
         String gameVersion;
         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
         catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("fabric", "1.8.0", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX));
+        send(VoidedProtocol.hello("fabric", "1.8.1", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL));
     }
 
     private static void send(byte[] bytes) {

@@ -6,7 +6,6 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
@@ -17,6 +16,10 @@ import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
 import org.lwjgl.glfw.GLFW;
 import uk.loqtm.voidedclient.protocol.VoidedProtocol;
+import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
+import uk.loqtm.voidedclient.forge.gui.ExplorationJournalScreen;
+
+import java.nio.charset.StandardCharsets;
 
 /** Forge adapter using a raw custom payload so the Paper server needs no Forge networking stack. */
 @Mod("voidedclient")
@@ -38,8 +41,8 @@ public final class VoidedClientForge {
             .optional()
             .payloadChannel()
             .play()
-            .flow(PacketFlow.SERVERBOUND)
-            .add(PAYLOAD_TYPE, PAYLOAD_CODEC, (payload, context) -> {})
+            .bidirectional()
+            .addMain(PAYLOAD_TYPE, PAYLOAD_CODEC, VoidedClientForge::receive)
             .build();
     private static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(
             Identifier.fromNamespaceAndPath("voidedclient", "controls"));
@@ -47,6 +50,7 @@ public final class VoidedClientForge {
 
     private final KeyMapping repair = new KeyMapping("key.voidedclient.repair", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_R, CATEGORY);
     private final KeyMapping rpgStats = new KeyMapping("key.voidedclient.rpg_stats", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_J, CATEGORY);
+    private final KeyMapping explorationJournal = new KeyMapping("key.voidedclient.exploration_journal", InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_K, CATEGORY);
     private final KeyMapping powerStrike = skillKey("key.voidedclient.skill.power_strike", GLFW.GLFW_KEY_Z);
     private final KeyMapping bulwark = skillKey("key.voidedclient.skill.bulwark", GLFW.GLFW_KEY_X);
     private final KeyMapping secondWind = skillKey("key.voidedclient.skill.second_wind", GLFW.GLFW_KEY_C);
@@ -66,6 +70,7 @@ public final class VoidedClientForge {
     private void keys(RegisterKeyMappingsEvent event) {
         event.register(repair);
         event.register(rpgStats);
+        event.register(explorationJournal);
         event.register(powerStrike);
         event.register(bulwark);
         event.register(secondWind);
@@ -99,6 +104,7 @@ public final class VoidedClientForge {
             lastStatsSent = now;
             send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS));
         }
+        while (explorationJournal.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
         castIfPressed(powerStrike, "power-strike");
         castIfPressed(bulwark, "bulwark");
         castIfPressed(secondWind, "second-wind");
@@ -112,14 +118,16 @@ public final class VoidedClientForge {
 
     private static void castIfPressed(KeyMapping mapping, String skill) {
         while (mapping.consumeClick()) {
-            String look = "";
+            String dashInput = "";
             if ("dash".equals(skill)) try {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
-                    look = String.format(java.util.Locale.ROOT, "look:%.3f,%.3f", mc.player.getYRot(), mc.player.getXRot());
+                    var movement = mc.player.input.getMoveVector();
+                    dashInput = String.format(java.util.Locale.ROOT, "dash:%.3f,%.3f,%.3f,%.3f",
+                            mc.player.getYRot(), mc.player.getXRot(), movement.x, movement.y);
                 }
             } catch (Throwable ignored) {}
-            send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_SKILL_CAST, skill, look));
+            send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_SKILL_CAST, skill, dashInput));
         }
     }
 
@@ -127,7 +135,21 @@ public final class VoidedClientForge {
         String gameVersion;
         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
         catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("forge", "1.8.0", gameVersion, VoidedProtocol.CAP_RPG_SKILLS));
+        send(VoidedProtocol.hello("forge", "1.8.1", gameVersion,
+                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL));
+    }
+
+    private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
+        if (!context.isClientSide()) return;
+        String message = new String(payload.bytes(), StandardCharsets.UTF_8);
+        if (message.startsWith("VC1|PROBE|")) {
+            sendHello();
+            return;
+        }
+        if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) {
+            ExplorationJournalState state = ExplorationJournalState.parse(message);
+            if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationJournalScreen(state));
+        }
     }
 
     private static void send(byte[] bytes) {
