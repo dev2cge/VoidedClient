@@ -127,17 +127,16 @@ public final class VoidedClientFabric implements ClientModInitializer {
 
     private static void castIfPressed(KeyMapping mapping, String skill) {
         while (mapping.consumeClick()) {
-            String movement = "";
+            String look = "";
             if ("dash".equals(skill)) {
                 try {
                     var player = net.minecraft.client.Minecraft.getInstance().player;
                     if (player != null) {
-                        var velocity = player.getDeltaMovement();
-                        movement = String.format(java.util.Locale.ROOT, "%.5f,%.5f", velocity.x, velocity.z);
+                        look = String.format(java.util.Locale.ROOT, "look:%.3f,%.3f", player.getYRot(), player.getXRot());
                     }
                 } catch (Throwable ignored) {}
             }
-            send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_SKILL_CAST, skill, movement));
+            send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_SKILL_CAST, skill, look));
         }
     }
 
@@ -145,7 +144,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
         String gameVersion;
         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
         catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("fabric", "1.7.1", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX));
+        send(VoidedProtocol.hello("fabric", "1.8.0", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX));
     }
 
     private static void send(byte[] bytes) {

@@ -1,8 +1,10 @@
 # Compatibility
 
-## 1.7.1 release trust layer
+## 1.8.0 facing-direction Dash
 
-Version 1.7.1 does not change gameplay or server authority. It adds deterministic archives, pinned build tooling, public build/checksum/provenance workflows and complete privacy/security documentation. Fabric, Forge, Lunar compatibility and vanilla fallbacks remain the same as 1.7.0.
+- Dash sends a yaw/pitch snapshot rather than sampled velocity.
+- VoidedCore validates the snapshot against its server-known view and owns the resulting movement.
+- Older Core builds still receive the cast request but require the matching 6.47.0 server update for the new payload.
 
 ## 1.7.0 movable HUD and skill presentation
 

@@ -1,4 +1,4 @@
-plugins { id 'net.minecraftforge.gradle' version '7.0.17' }
+plugins { id 'net.minecraftforge.gradle' version '[7.0.17,8)' }
 
 base { archivesName = 'VoidedClient-Forge-26.2' }
 java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }

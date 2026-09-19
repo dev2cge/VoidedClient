@@ -5,7 +5,6 @@
   "name": "VoidedClient",
   "description": "Optional VoidedNetwork RPG interface, keybind and server-action companion for Minecraft ${minecraft_version}.",
   "authors": ["LoqTm"],
-  "license": "LicenseRef-VoidedClient-Proprietary-1.0",
   "environment": "client",
   "entrypoints": { "client": ["uk.loqtm.voidedclient.fabric.VoidedClientFabric"] },
   "depends": {

@@ -36,13 +36,13 @@ Respec action:
 
 `VC1|ACTION|rpg.stat.respec`
 
-## Active skills and HUD (1.7.1)
+## Active skills and HUD (1.8.0)
 
-Fabric 1.7 clients advertise `rpg-hud,rpg-skills,rpg-skill-fx`. Skill casts are requests; Dash may include a normalized horizontal movement hint:
+Capable clients advertise `rpg-hud,rpg-skills,rpg-skill-fx`. Skill casts are requests; Dash includes the client's current yaw and pitch snapshot:
 
-`VC1|ACTION|rpg.skill.cast|dash|x,z`
+`VC1|ACTION|rpg.skill.cast|dash|look:yaw,pitch`
 
-VoidedCore validates the skill, mana, cooldown and player state before applying anything. It then refreshes this compact client-only display packet:
+VoidedCore validates the skill, mana, cooldown, player state and angle against the server-known view before applying anything. Invalid or stale snapshots fall back to the server view. It then refreshes this compact client-only display packet:
 
 `VC1|RPG_HUD|health|maxHealth|strength|defence|mana|maxMana|defenceReduction|powerStrikeCooldown|bulwarkCooldown|secondWindCooldown|dashCooldown|arcaneSurgeCooldown`
 
@@ -51,14 +51,3 @@ VoidedCore validates the skill, mana, cooldown and player state before applying 
 Cooldown values are whole seconds remaining; zero means ready. Clients must never calculate or mutate authoritative RPG state from the HUD packet.
 
 After a successful cast, capable clients may receive `VC1|RPG_FX|skill-id`. This is presentation-only; vanilla-visible effects and every gameplay consequence remain server-authoritative.
-
-## Privacy and transport guarantees
-
-- The protocol never includes passwords, account tokens, Discord data, chat content, inventory contents, filesystem paths or hardware identifiers.
-- Fabric and Forge send packets only through the active Minecraft server connection; VoidedClient has no external network client.
-- Clientbound and serverbound VoidedClient payloads are capped at 512 bytes.
-- Arguments are stripped of framing characters and line breaks and are length-limited before encoding.
-- Unknown actions and all gameplay-relevant values are rejected or recalculated by VoidedCore.
-- The protocol does not contain a remote-command or arbitrary-code execution message.
-
-See `PRIVACY.md` for the complete data inventory.
