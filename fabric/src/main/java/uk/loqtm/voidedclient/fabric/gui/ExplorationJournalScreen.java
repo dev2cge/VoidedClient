@@ -12,16 +12,12 @@ public final class ExplorationJournalScreen extends Screen {
     private static final int PAGE_SIZE = 6;
     private static final int PANEL_HEIGHT = 354;
     private final ExplorationJournalState state;
-<<<<<<< HEAD
     private final Runnable openContract;
-=======
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
     private int page;
     private Button previous;
     private Button next;
 
     public ExplorationJournalScreen(ExplorationJournalState state) {
-<<<<<<< HEAD
         this(state, null);
     }
 
@@ -29,10 +25,6 @@ public final class ExplorationJournalScreen extends Screen {
         super(Component.literal("Exploration Journal"));
         this.state = state;
         this.openContract = openContract;
-=======
-        super(Component.literal("Exploration Journal"));
-        this.state = state;
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
     }
 
     @Override
@@ -48,11 +40,8 @@ public final class ExplorationJournalScreen extends Screen {
             if (page < pages() - 1) page++;
             syncButtons();
         }).bounds(left + 44, top + 321, 28, 22).build());
-<<<<<<< HEAD
         if(openContract!=null)addRenderableWidget(Button.builder(Component.literal("View Contract"),button->openContract.run())
                 .bounds(left+82,top+321,102,22).build());
-=======
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
         addRenderableWidget(Button.builder(Component.literal("Close"), button -> minecraft.gui.setScreen(null))
                 .bounds(left + panelWidth - 72, top + 321, 60, 22).build());
         syncButtons();
