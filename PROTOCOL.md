@@ -2,7 +2,7 @@
 
 Transport is an ordinary Minecraft custom payload. VoidedCore registers `voidedcore:client` on modern servers and `VC|Client` as a legacy server fallback.
 
-UTF-8 payloads are capped at 512 bytes:
+Client requests are capped at 512 bytes. Server responses are capped at 4096 bytes so one bounded leaderboard or server-browser page fits without chunking:
 
 - `VC1|HELLO|<loader>|<modVersion>|<minecraftVersion>`
 - `VC1|ACTION|mending.repair`
@@ -57,7 +57,6 @@ Clients advertising `exploration-journal` may request the journal with `VC1|ACTI
 `VC1|EXPLORATION_JOURNAL|totalKills|highestRarityTier|contractName|contractProgress|contractTarget|contractComplete|id,name,discovered,kills;...`
 
 The client only presents this state. Discovery flags, per-creature kills and contract progress are stored and calculated by VoidedCore.
-<<<<<<< HEAD
 
 ## Daily expedition contract (1.8.2)
 
@@ -68,5 +67,21 @@ The server replies with:
 `VC1|EXPLORATION_CONTRACT|type|name|description|progress|target|complete|rewardXp|rewardItem|rewardAmount|minimumTier|date`
 
 All progression and rewards remain server-authoritative. The client only renders the supplied state.
-=======
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
+
+## Companion dashboard (1.9.0)
+
+Clients advertise `companion-home-v1,leaderboards-v1,linked-accounts-v1,server-navigation-v1`.
+
+- `VC1|ACTION|companion.home`
+- `VC1|COMPANION_HOME|player|server|online|balance|rpgLevel|discordLinked`
+- `VC1|ACTION|leaderboard.request|balance|1`
+- `VC1|LEADERBOARD|category|page|pages|selfRank|rank~name~value;...`
+- `VC1|ACTION|accounts.request`
+- `VC1|LINKED_ACCOUNTS|minecraftName|discordLinked|discordName|linkCode`
+- `VC1|ACTION|accounts.link`
+- `VC1|ACTION|accounts.unlink`
+- `VC1|ACTION|server.list`
+- `VC1|SERVER_LIST|id~name~online~current;...`
+- `VC1|ACTION|server.switch|serverId`
+
+VoidedCore validates every page, account action and server destination. No Discord token, website session, IP address or other authentication secret is transmitted.

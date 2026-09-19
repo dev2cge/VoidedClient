@@ -25,6 +25,11 @@ import uk.loqtm.voidedclient.fabric.gui.RpgHudRenderer;
 import uk.loqtm.voidedclient.fabric.gui.RpgHudEditorScreen;
 import uk.loqtm.voidedclient.fabric.gui.ExplorationJournalScreen;
 import uk.loqtm.voidedclient.fabric.gui.ExplorationContractScreen;
+import uk.loqtm.voidedclient.fabric.gui.CompanionScreen;
+import uk.loqtm.voidedclient.protocol.CompanionHomeState;
+import uk.loqtm.voidedclient.protocol.LeaderboardState;
+import uk.loqtm.voidedclient.protocol.LinkedAccountsState;
+import uk.loqtm.voidedclient.protocol.ServerListState;
 
 import java.nio.charset.StandardCharsets;
 
@@ -40,6 +45,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
     private KeyMapping rpgStats;
     private KeyMapping rpgHudLayout;
     private KeyMapping explorationJournal;
+    private KeyMapping companion;
     private KeyMapping powerStrike, bulwark, secondWind, dash, arcaneSurge;
     private long lastRepairSent;
     private long lastStatsSent;
@@ -81,6 +87,22 @@ public final class VoidedClientFabric implements ClientModInitializer {
                         context.client().gui.setScreen(new ExplorationContractScreen(state,
                                 () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)))));
             }
+            if (message.startsWith("VC1|COMPANION_HOME|")) {
+                CompanionHomeState state=CompanionHomeState.parse(message);
+                if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.home(state,VoidedClientFabric::send)));
+            }
+            if (message.startsWith("VC1|LEADERBOARD|")) {
+                LeaderboardState state=LeaderboardState.parse(message);
+                if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.leaderboard(state,VoidedClientFabric::send)));
+            }
+            if (message.startsWith("VC1|LINKED_ACCOUNTS|")) {
+                LinkedAccountsState state=LinkedAccountsState.parse(message);
+                if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.accounts(state,VoidedClientFabric::send)));
+            }
+            if (message.startsWith("VC1|SERVER_LIST|")) {
+                ServerListState state=ServerListState.parse(message);
+                if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.servers(state,VoidedClientFabric::send)));
+            }
         });
 
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT,
@@ -105,6 +127,11 @@ public final class VoidedClientFabric implements ClientModInitializer {
                 "key.voidedclient.exploration_journal",
                 InputConstants.Type.KEYSYM,
                 InputConstants.KEY_K,
+                CATEGORY));
+        companion = KeyMappingHelper.registerKeyMapping(new KeyMapping(
+                "key.voidedclient.companion",
+                InputConstants.Type.KEYSYM,
+                InputConstants.KEY_U,
                 CATEGORY));
         powerStrike = skillKey("key.voidedclient.skill.power_strike", InputConstants.KEY_Z);
         bulwark = skillKey("key.voidedclient.skill.bulwark", InputConstants.KEY_X);
@@ -136,6 +163,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
             }
             while (rpgHudLayout.consumeClick()) client.gui.setScreen(new RpgHudEditorScreen());
             while (explorationJournal.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
+            while (companion.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_COMPANION_HOME));
             castIfPressed(powerStrike, "power-strike");
             castIfPressed(bulwark, "bulwark");
             castIfPressed(secondWind, "second-wind");
@@ -169,7 +197,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
         String gameVersion;
         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
         catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("fabric", "1.8.2", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT));
+        send(VoidedProtocol.hello("fabric", "1.9.0", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION));
     }
 
     private static void send(byte[] bytes) {
@@ -180,11 +208,11 @@ public final class VoidedClientFabric implements ClientModInitializer {
     public record RawPayload(byte[] bytes) implements CustomPacketPayload {
         public static final StreamCodec<RegistryFriendlyByteBuf, RawPayload> CODEC = StreamCodec.of(
                 (buf, payload) -> {
-                    if (payload.bytes.length > 512) throw new IllegalArgumentException("VoidedClient payload too large");
+                    if (payload.bytes.length > 4096) throw new IllegalArgumentException("VoidedClient payload too large");
                     buf.writeBytes(payload.bytes);
                 },
                 buf -> {
-                    int length = Math.min(buf.readableBytes(), 512);
+                    int length = Math.min(buf.readableBytes(), 4096);
                     byte[] data = new byte[length];
                     buf.readBytes(data);
                     return new RawPayload(data);

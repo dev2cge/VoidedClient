@@ -3,7 +3,7 @@
   "id": "voidedclient",
   "version": "${version}",
   "name": "VoidedClient",
-  "description": "Optional VoidedNetwork RPG interface, keybind and server-action companion for Minecraft ${minecraft_version}.",
+  "description": "Optional VoidedNetwork companion dashboard, QoL tools and RPG interface for Minecraft ${minecraft_version}.",
   "authors": ["LoqTm"],
   "environment": "client",
   "entrypoints": { "client": ["uk.loqtm.voidedclient.fabric.VoidedClientFabric"] },

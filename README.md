@@ -1,22 +1,20 @@
-<<<<<<< HEAD
-# VoidedClient 1.8.2
-=======
-# VoidedClient 1.8.1
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
+# VoidedClient 1.9.0
 
 Optional VoidedNetwork client companion for Minecraft 26.2.
+
+## Companion dashboard
+
+Press **U** to open the unified Voided Network dashboard. It provides server-authoritative profile highlights, paginated balance/playtime/RPG leaderboards, Minecraft and Discord link status, an interactive server browser, and shortcuts into the existing Exploration and RPG interfaces.
+
+The client never receives Discord credentials, website sessions or authentication tokens. It only receives the linked display state and short-lived link code already issued by VoidedCore. Players without the mod can use the same features through `/companion`.
 
 ## RPG interface
 
 On Fabric 26.2 (including Lunar's supported Fabric mod environment), press **J** to request server-authoritative RPG state from VoidedCore 6.41.0. The character screen shows level/XP, live mana and regeneration, base/equipment/enchant/temporary stat breakdowns, active gear/effect counts, hybrid build identity and power, derived bonuses, caps, allocation controls and respec state.
 
-<<<<<<< HEAD
 Version 1.8.2 completes the Wave 3 client experience. Press **K** to view the Exploration Journal, then open the full Daily Expedition screen for its objective, live progress, reward and reset date. Defeated creatures are revealed in colour with their kill count, while undiscovered creatures remain blacked out. The server remains authoritative for every discovery and contract.
 
 Dash now sends yaw, pitch and current WASD intent. VoidedCore 6.50.0 validates that input and supports movement-relative angled dashes, a stationary vertical dash while looking up, and safe forward redirection when looking down over a solid floor.
-=======
-Version 1.8.1 adds a native Exploration Journal. Press **K** to view every custom creature: defeated creatures are revealed in colour with their kill count, while undiscovered creatures remain blacked out. The server remains authoritative for every discovery.
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
 
 The movable low-profile RPG HUD remains available on Fabric with **H**. Dash now combines the camera direction with live WASD input, allowing forward, backward, sideways and diagonal dashes while retaining pitch only for forward movement.
 
@@ -26,6 +24,7 @@ Every spend/respec action is validated by VoidedCore. Players without VoidedClie
 
 ## Keybinds
 
+- **U** — Open Voided Network Companion
 - **J** — View RPG Stats
 - **H** — Move/configure RPG HUD elements
 - **K** — Open Exploration Journal

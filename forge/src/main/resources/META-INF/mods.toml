@@ -8,7 +8,7 @@ modId="voidedclient"
 version="${version}"
 displayName="VoidedClient"
 authors="LoqTm"
-description='''Optional VoidedNetwork RPG interface, keybind and server-action companion for Minecraft ${minecraft_version}.'''
+description='''Optional VoidedNetwork companion dashboard, QoL tools and RPG interface for Minecraft ${minecraft_version}.'''
 
 [[dependencies.voidedclient]]
 modId="forge"
