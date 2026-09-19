@@ -1,0 +1,402 @@
+From c2e6ee7b66df64b3837dbab07bb8dc2d56251615 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Sat, 19 Sep 2026 14:13:05 +0100
+Subject: [PATCH] Complete Wave 3 client contract and dash UI
+
+---
+ CHANGELOG-1.8.2.md                            |  7 ++++
+ COMPATIBILITY.md                              |  8 ++++-
+ PROTOCOL.md                                   | 10 ++++++
+ README.md                                     |  6 ++--
+ build.gradle                                  |  2 +-
+ .../protocol/ExplorationContractState.java    | 30 ++++++++++++++++
+ .../voidedclient/protocol/VoidedProtocol.java |  2 ++
+ .../fabric/VoidedClientFabric.java            | 13 +++++--
+ .../fabric/gui/ExplorationContractScreen.java | 35 +++++++++++++++++++
+ .../fabric/gui/ExplorationJournalScreen.java  |  8 +++++
+ .../voidedclient/forge/VoidedClientForge.java | 14 ++++++--
+ .../forge/gui/ExplorationContractScreen.java  | 19 ++++++++++
+ .../forge/gui/ExplorationJournalScreen.java   |  8 +++++
+ gradle.properties                             |  2 +-
+ gradlew                                       |  0
+ 15 files changed, 154 insertions(+), 10 deletions(-)
+ create mode 100644 CHANGELOG-1.8.2.md
+ create mode 100644 common/src/main/java/uk/loqtm/voidedclient/protocol/ExplorationContractState.java
+ create mode 100644 fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationContractScreen.java
+ create mode 100644 forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationContractScreen.java
+ mode change 100644 => 100755 gradlew
+
+diff --git a/CHANGELOG-1.8.2.md b/CHANGELOG-1.8.2.md
+new file mode 100644
+index 0000000..d54ae3d
+--- /dev/null
++++ b/CHANGELOG-1.8.2.md
+@@ -0,0 +1,7 @@
++# VoidedClient 1.8.2
++
++- Added the full Daily Expedition GUI, opened from the Exploration Journal or `/exploration contract` on VoidedCore 6.50.0.
++- Added contract objective, live progress, completion state, rewards, rarity requirement and UTC contract date.
++- Added two-way Journal/Contract navigation without trusting the client for progression data.
++- Retained yaw and pitch for every WASD Dash direction and stationary vertical Dash requests.
++- Declared the `exploration-contract` protocol capability for Fabric and Forge.
+diff --git a/COMPATIBILITY.md b/COMPATIBILITY.md
+index 0a7f9b2..b859a54 100644
+--- a/COMPATIBILITY.md
++++ b/COMPATIBILITY.md
+@@ -1,8 +1,14 @@
+ # Compatibility
+ 
++## 1.8.2 Wave 3 completion
++
++- Requires VoidedCore 6.50.0 for the native Daily Expedition contract packet and final floor-safe/vertical Dash rules.
++- Older Core releases ignore the new contract action; the rest of the optional client remains safe.
++- Fabric and Forge advertise the contract capability separately so Core only sends the new packet to supported builds.
++
+ ## 1.8.1 WASD Dash and exploration journal
+ 
+-- Dash combines validated yaw/pitch with W, A, S and D input. Forward movement may use pitch; backward and sideways movement remains horizontal.
++- Dash combines validated yaw/pitch with W, A, S and D input. VoidedCore 6.50.0 applies pitch to every movement direction, preserves stationary vertical intent and prevents downward floor collisions.
+ - Fabric and Forge can request the native server-authoritative Exploration Journal with K.
+ - VoidedCore 6.49.1 is required for the new directional payload and journal packet. Older client/Core combinations retain their existing fallbacks.
+ 
+diff --git a/PROTOCOL.md b/PROTOCOL.md
+index f2ace0a..13d4650 100644
+--- a/PROTOCOL.md
++++ b/PROTOCOL.md
+@@ -57,3 +57,13 @@ Clients advertising `exploration-journal` may request the journal with `VC1|ACTI
+ `VC1|EXPLORATION_JOURNAL|totalKills|highestRarityTier|contractName|contractProgress|contractTarget|contractComplete|id,name,discovered,kills;...`
+ 
+ The client only presents this state. Discovery flags, per-creature kills and contract progress are stored and calculated by VoidedCore.
++
++## Daily expedition contract (1.8.2)
++
++Clients advertise `exploration-contract` and request the view with `VC1|ACTION|exploration.contract`.
++
++The server replies with:
++
++`VC1|EXPLORATION_CONTRACT|type|name|description|progress|target|complete|rewardXp|rewardItem|rewardAmount|minimumTier|date`
++
++All progression and rewards remain server-authoritative. The client only renders the supplied state.
+diff --git a/README.md b/README.md
+index 88d98df..b1a3075 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,4 @@
+-# VoidedClient 1.8.1
++# VoidedClient 1.8.2
+ 
+ Optional VoidedNetwork client companion for Minecraft 26.2.
+ 
+@@ -6,7 +6,9 @@ Optional VoidedNetwork client companion for Minecraft 26.2.
+ 
+ On Fabric 26.2 (including Lunar's supported Fabric mod environment), press **J** to request server-authoritative RPG state from VoidedCore 6.41.0. The character screen shows level/XP, live mana and regeneration, base/equipment/enchant/temporary stat breakdowns, active gear/effect counts, hybrid build identity and power, derived bonuses, caps, allocation controls and respec state.
+ 
+-Version 1.8.1 adds a native Exploration Journal. Press **K** to view every custom creature: defeated creatures are revealed in colour with their kill count, while undiscovered creatures remain blacked out. The server remains authoritative for every discovery.
++Version 1.8.2 completes the Wave 3 client experience. Press **K** to view the Exploration Journal, then open the full Daily Expedition screen for its objective, live progress, reward and reset date. Defeated creatures are revealed in colour with their kill count, while undiscovered creatures remain blacked out. The server remains authoritative for every discovery and contract.
++
++Dash now sends yaw, pitch and current WASD intent. VoidedCore 6.50.0 validates that input and supports movement-relative angled dashes, a stationary vertical dash while looking up, and safe forward redirection when looking down over a solid floor.
+ 
+ The movable low-profile RPG HUD remains available on Fabric with **H**. Dash now combines the camera direction with live WASD input, allowing forward, backward, sideways and diagonal dashes while retaining pitch only for forward movement.
+ 
+diff --git a/build.gradle b/build.gradle
+index 0436494..3169fee 100644
+--- a/build.gradle
++++ b/build.gradle
+@@ -4,7 +4,7 @@ def currentGradle = GradleVersion.current()
+ def minimumGradle = GradleVersion.version('9.5.0')
+ def maximumGradleExclusive = GradleVersion.version('10.0')
+ if (currentGradle < minimumGradle || currentGradle >= maximumGradleExclusive) {
+-    throw new GradleException("VoidedClient 1.8.0 targets Minecraft 26.2 and requires Gradle 9.5.x-9.x (wrapper: 9.5.1). Current: ${currentGradle.version}. Use JDK 25 for the Gradle JVM.")
++    throw new GradleException("VoidedClient 1.8.2 targets Minecraft 26.2 and requires Gradle 9.5.x-9.x (wrapper: 9.5.1). Current: ${currentGradle.version}. Use JDK 25 for the Gradle JVM.")
+ }
+ 
+ allprojects {
+diff --git a/common/src/main/java/uk/loqtm/voidedclient/protocol/ExplorationContractState.java b/common/src/main/java/uk/loqtm/voidedclient/protocol/ExplorationContractState.java
+new file mode 100644
+index 0000000..552599d
+--- /dev/null
++++ b/common/src/main/java/uk/loqtm/voidedclient/protocol/ExplorationContractState.java
+@@ -0,0 +1,30 @@
++package uk.loqtm.voidedclient.protocol;
++
++public record ExplorationContractState(
++        String type,
++        String name,
++        String description,
++        int progress,
++        int target,
++        boolean complete,
++        long rewardXp,
++        String rewardItem,
++        int rewardAmount,
++        int minimumRarityTier,
++        String date
++) {
++    public static ExplorationContractState parse(String payload) {
++        if (payload == null) return null;
++        String[] parts=payload.split("\\|",-1);
++        if(parts.length<13||!"VC1".equals(parts[0])||!"EXPLORATION_CONTRACT".equals(parts[1]))return null;
++        try {
++            return new ExplorationContractState(text(parts[2]),text(parts[3]),text(parts[4]),
++                    Math.max(0,Integer.parseInt(parts[5])),Math.max(1,Integer.parseInt(parts[6])),"1".equals(parts[7]),
++                    Math.max(0L,Long.parseLong(parts[8])),text(parts[9]),Math.max(0,Integer.parseInt(parts[10])),
++                    Math.max(1,Integer.parseInt(parts[11])),parts[12]);
++        } catch(RuntimeException ignored){return null;}
++    }
++
++    public double progressRatio(){return complete?1D:Math.min(1D,progress/(double)Math.max(1,target));}
++    private static String text(String value){return value==null?"":value.replace('_',' ');}
++}
+diff --git a/common/src/main/java/uk/loqtm/voidedclient/protocol/VoidedProtocol.java b/common/src/main/java/uk/loqtm/voidedclient/protocol/VoidedProtocol.java
+index 4a85490..649698d 100644
+--- a/common/src/main/java/uk/loqtm/voidedclient/protocol/VoidedProtocol.java
++++ b/common/src/main/java/uk/loqtm/voidedclient/protocol/VoidedProtocol.java
+@@ -11,6 +11,7 @@ public final class VoidedProtocol {
+     public static final String ACTION_RPG_STAT_RESPEC = "rpg.stat.respec";
+     public static final String ACTION_RPG_SKILL_CAST = "rpg.skill.cast";
+     public static final String ACTION_EXPLORATION_JOURNAL = "exploration.journal";
++    public static final String ACTION_EXPLORATION_CONTRACT = "exploration.contract";
+     public static final String CAP_RPG_UI = "rpg-ui";
+     public static final String CAP_RPG_STAT_SPEND = "rpg-stat-spend";
+     public static final String CAP_RPG_STAT_RESPEC = "rpg-stat-respec";
+@@ -20,6 +21,7 @@ public final class VoidedProtocol {
+     public static final String CAP_RPG_SKILLS = "rpg-skills";
+     public static final String CAP_RPG_SKILL_FX = "rpg-skill-fx";
+     public static final String CAP_EXPLORATION_JOURNAL = "exploration-journal";
++    public static final String CAP_EXPLORATION_CONTRACT = "exploration-contract";
+     private VoidedProtocol() {}
+ 
+     public static byte[] hello(String loader, String modVersion, String minecraftVersion) {
+diff --git a/fabric/src/main/java/uk/loqtm/voidedclient/fabric/VoidedClientFabric.java b/fabric/src/main/java/uk/loqtm/voidedclient/fabric/VoidedClientFabric.java
+index 5785c55..6f94f98 100644
+--- a/fabric/src/main/java/uk/loqtm/voidedclient/fabric/VoidedClientFabric.java
++++ b/fabric/src/main/java/uk/loqtm/voidedclient/fabric/VoidedClientFabric.java
+@@ -19,10 +19,12 @@ import uk.loqtm.voidedclient.protocol.VoidedProtocol;
+ import uk.loqtm.voidedclient.protocol.RpgStatsState;
+ import uk.loqtm.voidedclient.protocol.RpgHudState;
+ import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
++import uk.loqtm.voidedclient.protocol.ExplorationContractState;
+ import uk.loqtm.voidedclient.fabric.gui.RpgStatsScreen;
+ import uk.loqtm.voidedclient.fabric.gui.RpgHudRenderer;
+ import uk.loqtm.voidedclient.fabric.gui.RpgHudEditorScreen;
+ import uk.loqtm.voidedclient.fabric.gui.ExplorationJournalScreen;
++import uk.loqtm.voidedclient.fabric.gui.ExplorationContractScreen;
+ 
+ import java.nio.charset.StandardCharsets;
+ 
+@@ -70,7 +72,14 @@ public final class VoidedClientFabric implements ClientModInitializer {
+             if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) {
+                 ExplorationJournalState state = ExplorationJournalState.parse(message);
+                 if (state != null) context.client().execute(() ->
+-                        context.client().gui.setScreen(new ExplorationJournalScreen(state)));
++                        context.client().gui.setScreen(new ExplorationJournalScreen(state,
++                                () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_CONTRACT)))));
++            }
++            if (message.startsWith("VC1|EXPLORATION_CONTRACT|")) {
++                ExplorationContractState state = ExplorationContractState.parse(message);
++                if (state != null) context.client().execute(() ->
++                        context.client().gui.setScreen(new ExplorationContractScreen(state,
++                                () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)))));
+             }
+         });
+ 
+@@ -160,7 +169,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
+         String gameVersion;
+         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
+         catch (Throwable ignored) { gameVersion = "26.2"; }
+-        send(VoidedProtocol.hello("fabric", "1.8.1", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL));
++        send(VoidedProtocol.hello("fabric", "1.8.2", gameVersion, VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT));
+     }
+ 
+     private static void send(byte[] bytes) {
+diff --git a/fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationContractScreen.java b/fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationContractScreen.java
+new file mode 100644
+index 0000000..d798ec4
+--- /dev/null
++++ b/fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationContractScreen.java
+@@ -0,0 +1,35 @@
++package uk.loqtm.voidedclient.fabric.gui;
++
++import net.minecraft.client.gui.GuiGraphicsExtractor;
++import net.minecraft.client.gui.components.Button;
++import net.minecraft.client.gui.screens.Screen;
++import net.minecraft.network.chat.Component;
++import uk.loqtm.voidedclient.protocol.ExplorationContractState;
++
++import java.util.Locale;
++
++public final class ExplorationContractScreen extends Screen {
++    private static final int PANEL_HEIGHT=244;
++    private final ExplorationContractState state;
++    private final Runnable back;
++
++    public ExplorationContractScreen(ExplorationContractState state,Runnable back){super(Component.literal("Daily Expedition"));this.state=state;this.back=back;}
++
++    @Override protected void init(){int w=Math.min(430,width-24),left=(width-w)/2,top=Math.max(8,(height-PANEL_HEIGHT)/2);
++        if(back!=null)addRenderableWidget(Button.builder(Component.literal("Back to Journal"),b->back.run()).bounds(left+12,top+210,112,22).build());
++        addRenderableWidget(Button.builder(Component.literal("Close"),b->minecraft.gui.setScreen(null)).bounds(left+w-72,top+210,60,22).build());}
++
++    @Override public void extractRenderState(GuiGraphicsExtractor g,int mouseX,int mouseY,float delta){super.extractRenderState(g,mouseX,mouseY,delta);
++        int w=Math.min(430,width-24),left=(width-w)/2,top=Math.max(8,(height-PANEL_HEIGHT)/2),right=left+w;
++        g.fill(left-1,top-1,right+1,top+PANEL_HEIGHT+1,0xFF5B21B6);g.fill(left,top,right,top+PANEL_HEIGHT,0xF5100D18);g.fill(left,top,right,top+3,0xFF8B5CF6);
++        g.centeredText(font,"DAILY EXPEDITION",width/2,top+14,0xFFC4B5FD);g.centeredText(font,state.name().toUpperCase(Locale.ROOT),width/2,top+34,0xFFFFFFFF);
++        g.centeredText(font,state.description(),width/2,top+57,0xFFB9AFC8);
++        int barL=left+28,barR=right-28,barY=top+85;g.fill(barL,barY,barR,barY+12,0xFF30283B);g.fill(barL+2,barY+2,barL+2+(int)((barR-barL-4)*state.progressRatio()),barY+10,state.complete()?0xFF22C55E:0xFF8B5CF6);
++        String progress=state.complete()?"COMPLETE":Math.min(state.progress(),state.target())+" / "+state.target();g.centeredText(font,progress,width/2,top+103,state.complete()?0xFF86EFAC:0xFFE9D5FF);
++        g.fill(left+20,top+126,right-20,top+190,0xFF181320);g.text(font,"REWARDS",left+32,top+137,0xFFC4B5FD,true);
++        g.text(font,state.rewardXp()+" RPG XP",left+32,top+155,0xFFFFFFFF,false);g.text(font,state.rewardAmount()+"x "+title(state.rewardItem()),left+32,top+171,0xFFFFFFFF,false);
++        String detail="elite-hunt".equals(state.type())?"Requires rarity tier "+state.minimumRarityTier()+"+":"Resets daily at 00:00 UTC";g.text(font,detail,right-32-font.width(detail),top+155,0xFFAAA2B5,false);
++        g.text(font,"Contract date: "+state.date(),right-32-font.width("Contract date: "+state.date()),top+171,0xFF777080,false);
++    }
++    private static String title(String value){StringBuilder out=new StringBuilder();for(String p:value.split(" "))if(!p.isEmpty()){if(out.length()>0)out.append(' ');out.append(Character.toUpperCase(p.charAt(0))).append(p.substring(1));}return out.toString();}
++}
+diff --git a/fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationJournalScreen.java b/fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationJournalScreen.java
+index c3a89cf..2592a2f 100644
+--- a/fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationJournalScreen.java
++++ b/fabric/src/main/java/uk/loqtm/voidedclient/fabric/gui/ExplorationJournalScreen.java
+@@ -12,13 +12,19 @@ public final class ExplorationJournalScreen extends Screen {
+     private static final int PAGE_SIZE = 6;
+     private static final int PANEL_HEIGHT = 354;
+     private final ExplorationJournalState state;
++    private final Runnable openContract;
+     private int page;
+     private Button previous;
+     private Button next;
+ 
+     public ExplorationJournalScreen(ExplorationJournalState state) {
++        this(state, null);
++    }
++
++    public ExplorationJournalScreen(ExplorationJournalState state, Runnable openContract) {
+         super(Component.literal("Exploration Journal"));
+         this.state = state;
++        this.openContract = openContract;
+     }
+ 
+     @Override
+@@ -34,6 +40,8 @@ public final class ExplorationJournalScreen extends Screen {
+             if (page < pages() - 1) page++;
+             syncButtons();
+         }).bounds(left + 44, top + 321, 28, 22).build());
++        if(openContract!=null)addRenderableWidget(Button.builder(Component.literal("View Contract"),button->openContract.run())
++                .bounds(left+82,top+321,102,22).build());
+         addRenderableWidget(Button.builder(Component.literal("Close"), button -> minecraft.gui.setScreen(null))
+                 .bounds(left + panelWidth - 72, top + 321, 60, 22).build());
+         syncButtons();
+diff --git a/forge/src/main/java/uk/loqtm/voidedclient/forge/VoidedClientForge.java b/forge/src/main/java/uk/loqtm/voidedclient/forge/VoidedClientForge.java
+index d1f3272..643d311 100644
+--- a/forge/src/main/java/uk/loqtm/voidedclient/forge/VoidedClientForge.java
++++ b/forge/src/main/java/uk/loqtm/voidedclient/forge/VoidedClientForge.java
+@@ -17,7 +17,9 @@ import net.minecraftforge.network.ChannelBuilder;
+ import org.lwjgl.glfw.GLFW;
+ import uk.loqtm.voidedclient.protocol.VoidedProtocol;
+ import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
++import uk.loqtm.voidedclient.protocol.ExplorationContractState;
+ import uk.loqtm.voidedclient.forge.gui.ExplorationJournalScreen;
++import uk.loqtm.voidedclient.forge.gui.ExplorationContractScreen;
+ 
+ import java.nio.charset.StandardCharsets;
+ 
+@@ -135,8 +137,8 @@ public final class VoidedClientForge {
+         String gameVersion;
+         try { gameVersion = SharedConstants.getCurrentVersion().id(); }
+         catch (Throwable ignored) { gameVersion = "26.2"; }
+-        send(VoidedProtocol.hello("forge", "1.8.1", gameVersion,
+-                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL));
++        send(VoidedProtocol.hello("forge", "1.8.2", gameVersion,
++                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT));
+     }
+ 
+     private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
+@@ -148,7 +150,13 @@ public final class VoidedClientForge {
+         }
+         if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) {
+             ExplorationJournalState state = ExplorationJournalState.parse(message);
+-            if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationJournalScreen(state));
++            if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationJournalScreen(state,
++                    () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_CONTRACT))));
++        }
++        if (message.startsWith("VC1|EXPLORATION_CONTRACT|")) {
++            ExplorationContractState state = ExplorationContractState.parse(message);
++            if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationContractScreen(state,
++                    () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL))));
+         }
+     }
+ 
+diff --git a/forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationContractScreen.java b/forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationContractScreen.java
+new file mode 100644
+index 0000000..808b985
+--- /dev/null
++++ b/forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationContractScreen.java
+@@ -0,0 +1,19 @@
++package uk.loqtm.voidedclient.forge.gui;
++
++import net.minecraft.client.gui.GuiGraphicsExtractor;
++import net.minecraft.client.gui.components.Button;
++import net.minecraft.client.gui.screens.Screen;
++import net.minecraft.network.chat.Component;
++import uk.loqtm.voidedclient.protocol.ExplorationContractState;
++
++import java.util.Locale;
++
++public final class ExplorationContractScreen extends Screen {
++    private static final int PANEL_HEIGHT=244;
++    private final ExplorationContractState state;
++    private final Runnable back;
++    public ExplorationContractScreen(ExplorationContractState state,Runnable back){super(Component.literal("Daily Expedition"));this.state=state;this.back=back;}
++    @Override protected void init(){int w=Math.min(430,width-24),left=(width-w)/2,top=Math.max(8,(height-PANEL_HEIGHT)/2);if(back!=null)addRenderableWidget(Button.builder(Component.literal("Back to Journal"),b->back.run()).bounds(left+12,top+210,112,22).build());addRenderableWidget(Button.builder(Component.literal("Close"),b->minecraft.gui.setScreen(null)).bounds(left+w-72,top+210,60,22).build());}
++    @Override public void extractRenderState(GuiGraphicsExtractor g,int mouseX,int mouseY,float delta){super.extractRenderState(g,mouseX,mouseY,delta);int w=Math.min(430,width-24),left=(width-w)/2,top=Math.max(8,(height-PANEL_HEIGHT)/2),right=left+w;g.fill(left-1,top-1,right+1,top+PANEL_HEIGHT+1,0xFF5B21B6);g.fill(left,top,right,top+PANEL_HEIGHT,0xF5100D18);g.fill(left,top,right,top+3,0xFF8B5CF6);g.centeredText(font,"DAILY EXPEDITION",width/2,top+14,0xFFC4B5FD);g.centeredText(font,state.name().toUpperCase(Locale.ROOT),width/2,top+34,0xFFFFFFFF);g.centeredText(font,state.description(),width/2,top+57,0xFFB9AFC8);int barL=left+28,barR=right-28,barY=top+85;g.fill(barL,barY,barR,barY+12,0xFF30283B);g.fill(barL+2,barY+2,barL+2+(int)((barR-barL-4)*state.progressRatio()),barY+10,state.complete()?0xFF22C55E:0xFF8B5CF6);String progress=state.complete()?"COMPLETE":Math.min(state.progress(),state.target())+" / "+state.target();g.centeredText(font,progress,width/2,top+103,state.complete()?0xFF86EFAC:0xFFE9D5FF);g.fill(left+20,top+126,right-20,top+190,0xFF181320);g.text(font,"REWARDS",left+32,top+137,0xFFC4B5FD,true);g.text(font,state.rewardXp()+" RPG XP",left+32,top+155,0xFFFFFFFF,false);g.text(font,state.rewardAmount()+"x "+title(state.rewardItem()),left+32,top+171,0xFFFFFFFF,false);String detail="elite-hunt".equals(state.type())?"Requires rarity tier "+state.minimumRarityTier()+"+":"Resets daily at 00:00 UTC";g.text(font,detail,right-32-font.width(detail),top+155,0xFFAAA2B5,false);String date="Contract date: "+state.date();g.text(font,date,right-32-font.width(date),top+171,0xFF777080,false);}
++    private static String title(String value){StringBuilder out=new StringBuilder();for(String p:value.split(" "))if(!p.isEmpty()){if(out.length()>0)out.append(' ');out.append(Character.toUpperCase(p.charAt(0))).append(p.substring(1));}return out.toString();}
++}
+diff --git a/forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationJournalScreen.java b/forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationJournalScreen.java
+index fa7fcd7..f05e7c3 100644
+--- a/forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationJournalScreen.java
++++ b/forge/src/main/java/uk/loqtm/voidedclient/forge/gui/ExplorationJournalScreen.java
+@@ -12,13 +12,19 @@ public final class ExplorationJournalScreen extends Screen {
+     private static final int PAGE_SIZE = 6;
+     private static final int PANEL_HEIGHT = 354;
+     private final ExplorationJournalState state;
++    private final Runnable openContract;
+     private int page;
+     private Button previous;
+     private Button next;
+ 
+     public ExplorationJournalScreen(ExplorationJournalState state) {
++        this(state, null);
++    }
++
++    public ExplorationJournalScreen(ExplorationJournalState state, Runnable openContract) {
+         super(Component.literal("Exploration Journal"));
+         this.state = state;
++        this.openContract = openContract;
+     }
+ 
+     @Override
+@@ -34,6 +40,8 @@ public final class ExplorationJournalScreen extends Screen {
+             if (page < pages() - 1) page++;
+             syncButtons();
+         }).bounds(left + 44, top + 321, 28, 22).build());
++        if(openContract!=null)addRenderableWidget(Button.builder(Component.literal("View Contract"),button->openContract.run())
++                .bounds(left+82,top+321,102,22).build());
+         addRenderableWidget(Button.builder(Component.literal("Close"), button -> minecraft.gui.setScreen(null))
+                 .bounds(left + panelWidth - 72, top + 321, 60, 22).build());
+         syncButtons();
+diff --git a/gradle.properties b/gradle.properties
+index 06d5909..335920d 100644
+--- a/gradle.properties
++++ b/gradle.properties
+@@ -1,7 +1,7 @@
+ org.gradle.jvmargs=-Xmx2G
+ org.gradle.parallel=true
+ org.gradle.warning.mode=all
+-version=1.8.1
++version=1.8.2
+ group=uk.loqtm
+ minecraft_version=26.2
+ fabric_loader_version=0.19.4
+diff --git a/gradlew b/gradlew
+old mode 100644
+new mode 100755
+-- 
+2.51.1
+
