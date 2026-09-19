@@ -14,6 +14,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.network.Channel;
 import net.minecraftforge.network.ChannelBuilder;
+import net.minecraftforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 import uk.loqtm.voidedclient.protocol.VoidedProtocol;
 import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
@@ -164,7 +165,7 @@ public final class VoidedClientForge {
         try {
             Minecraft mc = Minecraft.getInstance();
             if (mc.getConnection() == null) return;
-            NETWORK.send(new RawPayload(bytes), mc.getConnection().getConnection());
+            NETWORK.send(new RawPayload(bytes), PacketDistributor.SERVER.noArg());
         } catch (Throwable ignored) {
             // Optional companion: never make an unrelated server unusable if it does not understand the channel.
         }
