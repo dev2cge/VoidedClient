@@ -1,5 +1,17 @@
 # Compatibility
 
+## 1.8.2 Wave 3 completion
+
+- Requires VoidedCore 6.50.0 for the native Daily Expedition contract packet and final floor-safe/vertical Dash rules.
+- Older Core releases ignore the new contract action; the rest of the optional client remains safe.
+- Fabric and Forge advertise the contract capability separately so Core only sends the new packet to supported builds.
+
+## 1.8.1 WASD Dash and exploration journal
+
+- Dash combines validated yaw/pitch with W, A, S and D input. VoidedCore 6.50.0 applies pitch to every movement direction, preserves stationary vertical intent and prevents downward floor collisions.
+- Fabric and Forge can request the native server-authoritative Exploration Journal with K.
+- VoidedCore 6.49.1 is required for the new directional payload and journal packet. Older client/Core combinations retain their existing fallbacks.
+
 ## 1.8.0 facing-direction Dash
 
 - Dash sends a yaw/pitch snapshot rather than sampled velocity.

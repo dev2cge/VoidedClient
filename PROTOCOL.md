@@ -36,13 +36,13 @@ Respec action:
 
 `VC1|ACTION|rpg.stat.respec`
 
-## Active skills and HUD (1.8.0)
+## Active skills, HUD and exploration journal (1.8.1)
 
-Capable clients advertise `rpg-hud,rpg-skills,rpg-skill-fx`. Skill casts are requests; Dash includes the client's current yaw and pitch snapshot:
+Capable clients advertise `rpg-hud,rpg-skills,rpg-skill-fx`. Skill casts are requests; Dash includes the client's current yaw, pitch and normalized local movement input:
 
-`VC1|ACTION|rpg.skill.cast|dash|look:yaw,pitch`
+`VC1|ACTION|rpg.skill.cast|dash|dash:yaw,pitch,strafe,forward`
 
-VoidedCore validates the skill, mana, cooldown, player state and angle against the server-known view before applying anything. Invalid or stale snapshots fall back to the server view. It then refreshes this compact client-only display packet:
+`strafe` is positive for left and negative for right. `forward` is positive for forward and negative for backward. VoidedCore validates the camera snapshot against the server-known view, clamps input, and calculates the world-space direction itself. VoidedClient 1.8.0 `look:yaw,pitch` remains accepted.
 
 `VC1|RPG_HUD|health|maxHealth|strength|defence|mana|maxMana|defenceReduction|powerStrikeCooldown|bulwarkCooldown|secondWindCooldown|dashCooldown|arcaneSurgeCooldown`
 
@@ -51,3 +51,19 @@ VoidedCore validates the skill, mana, cooldown, player state and angle against t
 Cooldown values are whole seconds remaining; zero means ready. Clients must never calculate or mutate authoritative RPG state from the HUD packet.
 
 After a successful cast, capable clients may receive `VC1|RPG_FX|skill-id`. This is presentation-only; vanilla-visible effects and every gameplay consequence remain server-authoritative.
+
+Clients advertising `exploration-journal` may request the journal with `VC1|ACTION|exploration.journal`. Core responds with:
+
+`VC1|EXPLORATION_JOURNAL|totalKills|highestRarityTier|contractName|contractProgress|contractTarget|contractComplete|id,name,discovered,kills;...`
+
+The client only presents this state. Discovery flags, per-creature kills and contract progress are stored and calculated by VoidedCore.
+
+## Daily expedition contract (1.8.2)
+
+Clients advertise `exploration-contract` and request the view with `VC1|ACTION|exploration.contract`.
+
+The server replies with:
+
+`VC1|EXPLORATION_CONTRACT|type|name|description|progress|target|complete|rewardXp|rewardItem|rewardAmount|minimumTier|date`
+
+All progression and rewards remain server-authoritative. The client only renders the supplied state.
