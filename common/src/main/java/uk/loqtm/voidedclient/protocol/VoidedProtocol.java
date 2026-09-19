@@ -11,10 +11,7 @@ public final class VoidedProtocol {
     public static final String ACTION_RPG_STAT_RESPEC = "rpg.stat.respec";
     public static final String ACTION_RPG_SKILL_CAST = "rpg.skill.cast";
     public static final String ACTION_EXPLORATION_JOURNAL = "exploration.journal";
-<<<<<<< HEAD
     public static final String ACTION_EXPLORATION_CONTRACT = "exploration.contract";
-=======
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
     public static final String CAP_RPG_UI = "rpg-ui";
     public static final String CAP_RPG_STAT_SPEND = "rpg-stat-spend";
     public static final String CAP_RPG_STAT_RESPEC = "rpg-stat-respec";
@@ -24,10 +21,7 @@ public final class VoidedProtocol {
     public static final String CAP_RPG_SKILLS = "rpg-skills";
     public static final String CAP_RPG_SKILL_FX = "rpg-skill-fx";
     public static final String CAP_EXPLORATION_JOURNAL = "exploration-journal";
-<<<<<<< HEAD
     public static final String CAP_EXPLORATION_CONTRACT = "exploration-contract";
-=======
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
     private VoidedProtocol() {}
 
     public static byte[] hello(String loader, String modVersion, String minecraftVersion) {
