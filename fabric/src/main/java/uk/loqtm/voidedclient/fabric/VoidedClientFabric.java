@@ -20,11 +20,8 @@ import uk.loqtm.voidedclient.protocol.RpgStatsState;
 import uk.loqtm.voidedclient.protocol.RpgHudState;
 import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
 import uk.loqtm.voidedclient.protocol.ExplorationContractState;
-import uk.loqtm.voidedclient.fabric.gui.RpgStatsScreen;
 import uk.loqtm.voidedclient.fabric.gui.RpgHudRenderer;
 import uk.loqtm.voidedclient.fabric.gui.RpgHudEditorScreen;
-import uk.loqtm.voidedclient.fabric.gui.ExplorationJournalScreen;
-import uk.loqtm.voidedclient.fabric.gui.ExplorationContractScreen;
 import uk.loqtm.voidedclient.fabric.gui.CompanionScreen;
 import uk.loqtm.voidedclient.protocol.CompanionHomeState;
 import uk.loqtm.voidedclient.protocol.LeaderboardState;
@@ -61,21 +58,17 @@ public final class VoidedClientFabric implements ClientModInitializer {
             if (message.startsWith("VC1|PROBE|")) { context.client().execute(VoidedClientFabric::sendHello); return; }
             if (message.startsWith("VC1|RPG_STATS|") || message.startsWith("VC1|RPG_STATS_V2|") || message.startsWith("VC1|RPG_STATS_V3|")) {
                 RpgStatsState state = RpgStatsState.parse(message);
-                if (state != null) context.client().execute(() -> context.client().gui.setScreen(new RpgStatsScreen(state,
-                        (stat, amount) -> send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STAT_SPEND, stat, amount)),
-                        () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STAT_RESPEC)))));
+                if (state != null) context.client().execute(() -> context.client().gui.setScreen(CompanionScreen.rpg(state, VoidedClientFabric::send)));
             }
             if (message.startsWith("VC1|RPG_HUD|")) { RpgHudState state = RpgHudState.parse(message); if (state != null) context.client().execute(() -> RpgHudRenderer.update(state)); }
             if (message.startsWith("VC1|RPG_FX|")) { String skill = message.substring("VC1|RPG_FX|".length()); context.client().execute(() -> RpgHudRenderer.flash(skill)); }
             if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) {
                 ExplorationJournalState state = ExplorationJournalState.parse(message);
-                if (state != null) context.client().execute(() -> context.client().gui.setScreen(new ExplorationJournalScreen(state,
-                        () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_CONTRACT)))));
+                if (state != null) context.client().execute(() -> context.client().gui.setScreen(CompanionScreen.explore(state, VoidedClientFabric::send)));
             }
             if (message.startsWith("VC1|EXPLORATION_CONTRACT|")) {
                 ExplorationContractState state = ExplorationContractState.parse(message);
-                if (state != null) context.client().execute(() -> context.client().gui.setScreen(new ExplorationContractScreen(state,
-                        () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)))));
+                if (state != null) context.client().execute(() -> context.client().gui.setScreen(CompanionScreen.exploreContract(state, VoidedClientFabric::send)));
             }
             if (message.startsWith("VC1|COMPANION_HOME|")) { CompanionHomeState state=CompanionHomeState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.home(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|LEADERBOARD|")) { LeaderboardState state=LeaderboardState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.leaderboard(state,VoidedClientFabric::send))); }
@@ -124,7 +117,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
     }
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("fabric", "1.11.0", gameVersion,
+        send(VoidedProtocol.hello("fabric", "1.10.0", gameVersion,
                 VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION));
     }
     private static void send(byte[] bytes) { try { ClientPlayNetworking.send(new RawPayload(bytes)); } catch (Throwable ignored) {} }

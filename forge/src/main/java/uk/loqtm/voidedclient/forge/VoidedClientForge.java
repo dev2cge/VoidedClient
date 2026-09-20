@@ -17,10 +17,9 @@ import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 import uk.loqtm.voidedclient.protocol.VoidedProtocol;
+import uk.loqtm.voidedclient.protocol.RpgStatsState;
 import uk.loqtm.voidedclient.protocol.ExplorationJournalState;
 import uk.loqtm.voidedclient.protocol.ExplorationContractState;
-import uk.loqtm.voidedclient.forge.gui.ExplorationJournalScreen;
-import uk.loqtm.voidedclient.forge.gui.ExplorationContractScreen;
 import uk.loqtm.voidedclient.forge.gui.CompanionScreen;
 import uk.loqtm.voidedclient.protocol.CompanionHomeState;
 import uk.loqtm.voidedclient.protocol.LeaderboardState;
@@ -85,15 +84,16 @@ public final class VoidedClientForge {
     }
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("forge", "1.11.0", gameVersion,
+        send(VoidedProtocol.hello("forge", "1.10.0", gameVersion,
                 VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION));
     }
     private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
         if (!context.isClientSide()) return;
         String message = new String(payload.bytes(), StandardCharsets.UTF_8);
         if (message.startsWith("VC1|PROBE|")) { sendHello(); return; }
-        if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) { ExplorationJournalState state = ExplorationJournalState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationJournalScreen(state, () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_CONTRACT)))); }
-        if (message.startsWith("VC1|EXPLORATION_CONTRACT|")) { ExplorationContractState state = ExplorationContractState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(new ExplorationContractScreen(state, () -> send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)))); }
+        if (message.startsWith("VC1|RPG_STATS|") || message.startsWith("VC1|RPG_STATS_V2|") || message.startsWith("VC1|RPG_STATS_V3|")) { RpgStatsState state = RpgStatsState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(CompanionScreen.rpg(state, VoidedClientForge::send)); }
+        if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) { ExplorationJournalState state = ExplorationJournalState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(CompanionScreen.explore(state, VoidedClientForge::send)); }
+        if (message.startsWith("VC1|EXPLORATION_CONTRACT|")) { ExplorationContractState state = ExplorationContractState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(CompanionScreen.exploreContract(state, VoidedClientForge::send)); }
         if (message.startsWith("VC1|COMPANION_HOME|")) { CompanionHomeState state=CompanionHomeState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.home(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|LEADERBOARD|")) { LeaderboardState state=LeaderboardState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.leaderboard(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|LINKED_ACCOUNTS|")) { LinkedAccountsState state=LinkedAccountsState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.accounts(state,VoidedClientForge::send)); }

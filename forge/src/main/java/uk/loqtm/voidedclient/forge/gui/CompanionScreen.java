@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 /** Unified Voided Network companion dashboard. All displayed state is supplied by VoidedCore. */
 public final class CompanionScreen extends Screen {
     private static final int SERVER_PAGE_SIZE = 7;
-    private enum View { HOME, LEADERBOARD, ACCOUNTS, SERVERS, NETHER, END }
+    private enum View { HOME, LEADERBOARD, ACCOUNTS, SERVERS, EXPLORE, EXPLORE_CONTRACT, NETHER, END, RPG }
 
     private final View view;
     private final Object state;
@@ -31,8 +31,11 @@ public final class CompanionScreen extends Screen {
     public static CompanionScreen leaderboard(LeaderboardState state, Consumer<byte[]> send) { return new CompanionScreen(View.LEADERBOARD, state, send, 0); }
     public static CompanionScreen accounts(LinkedAccountsState state, Consumer<byte[]> send) { return new CompanionScreen(View.ACCOUNTS, state, send, 0); }
     public static CompanionScreen servers(ServerListState state, Consumer<byte[]> send) { return new CompanionScreen(View.SERVERS, state, send, 0); }
+    public static CompanionScreen explore(ExplorationJournalState state, Consumer<byte[]> send) { return new CompanionScreen(View.EXPLORE, state, send, 0); }
+    public static CompanionScreen exploreContract(ExplorationContractState state, Consumer<byte[]> send) { return new CompanionScreen(View.EXPLORE_CONTRACT, state, send, 0); }
     public static CompanionScreen nether(NetherCompanionState state, Consumer<byte[]> send) { return new CompanionScreen(View.NETHER, state, send, 0); }
     public static CompanionScreen end(EndCompanionState state, Consumer<byte[]> send) { return new CompanionScreen(View.END, state, send, 0); }
+    public static CompanionScreen rpg(RpgStatsState state, Consumer<byte[]> send) { return new CompanionScreen(View.RPG, state, send, 0); }
 
     @Override protected void init() {
         int w = Math.min(520, width - 24), left = (width - w) / 2, top = Math.max(8, (height - 300) / 2);
@@ -48,8 +51,10 @@ public final class CompanionScreen extends Screen {
         if (view == View.HOME) initHome(left, top, w);
         else if (view == View.LEADERBOARD) initLeaderboard(left, top, w);
         else if (view == View.ACCOUNTS) initAccounts(left, top, w);
+        else if (view == View.EXPLORE || view == View.EXPLORE_CONTRACT) initExplore(left, top, w);
         else if (view == View.NETHER) initNether(left, top, w);
         else if (view == View.END) initEnd(left, top, w);
+        else if (view == View.RPG) initRpg(left, top, w);
         else initServers(left, top, w);
 
         addRenderableWidget(Button.builder(Component.literal("Close"), b -> minecraft.gui.setScreen(null)).bounds(left + w - 72, top + 266, 60, 22).build());
@@ -85,6 +90,35 @@ public final class CompanionScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST)).bounds(left + 180, top + 184, 86, 24).build());
     }
 
+
+    private void initExplore(int left, int top, int w) {
+        Button journal = Button.builder(Component.literal("Journal"), b -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)).bounds(left + 24, top + 70, 84, 20).build();
+        Button contract = Button.builder(Component.literal("Daily Contract"), b -> request(VoidedProtocol.ACTION_EXPLORATION_CONTRACT)).bounds(left + 112, top + 70, 112, 20).build();
+        journal.active = view != View.EXPLORE;
+        contract.active = view != View.EXPLORE_CONTRACT;
+        addRenderableWidget(journal);
+        addRenderableWidget(contract);
+        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(view == View.EXPLORE_CONTRACT ? VoidedProtocol.ACTION_EXPLORATION_CONTRACT : VoidedProtocol.ACTION_EXPLORATION_JOURNAL)).bounds(left + w - 102, top + 70, 78, 20).build());
+    }
+
+    private void initRpg(int left, int top, int w) {
+        RpgStatsState s = (RpgStatsState) state;
+        String[] keys = {"strength", "defence", "vitality", "agility", "intelligence"};
+        int y = top + 122;
+        for (String key : keys) {
+            boolean enabled = s.points() > 0 && s.stat(key) < s.maxPointsPerStat();
+            Button one = Button.builder(Component.literal("+1"), b -> request(VoidedProtocol.ACTION_RPG_STAT_SPEND, key, "1")).bounds(left + w - 142, y, 34, 20).build();
+            Button five = Button.builder(Component.literal("+5"), b -> request(VoidedProtocol.ACTION_RPG_STAT_SPEND, key, "5")).bounds(left + w - 104, y, 34, 20).build();
+            Button max = Button.builder(Component.literal("MAX"), b -> request(VoidedProtocol.ACTION_RPG_STAT_SPEND, key, "max")).bounds(left + w - 66, y, 42, 20).build();
+            one.active = enabled; five.active = enabled; max.active = enabled;
+            addRenderableWidget(one); addRenderableWidget(five); addRenderableWidget(max);
+            y += 23;
+        }
+        Button respec = Button.builder(Component.literal("Respec"), b -> request(VoidedProtocol.ACTION_RPG_STAT_RESPEC)).bounds(left + 24, top + 240, 72, 20).build();
+        respec.active = s.spentPoints() > 0 && s.respecCooldownSeconds() == 0L;
+        addRenderableWidget(respec);
+        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_RPG_STATS)).bounds(left + 102, top + 240, 78, 20).build());
+    }
 
     private void initNether(int left, int top, int w) {
         addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_NETHER_COMPANION)).bounds(left + 24, top + 236, 78, 22).build());
@@ -145,8 +179,11 @@ public final class CompanionScreen extends Screen {
         if (view == View.HOME) renderHome(g, left, top, w);
         else if (view == View.LEADERBOARD) renderLeaderboard(g, left, top, w);
         else if (view == View.ACCOUNTS) renderAccounts(g, left, top, w);
+        else if (view == View.EXPLORE) renderExplore(g, left, top, w);
+        else if (view == View.EXPLORE_CONTRACT) renderExploreContract(g, left, top, w);
         else if (view == View.NETHER) renderNether(g, left, top, w);
         else if (view == View.END) renderEnd(g, left, top, w);
+        else if (view == View.RPG) renderRpg(g, left, top, w);
         else renderServers(g, left, top, w);
         // Widgets last: keeps every tab/button readable and clickable above the panel.
         super.extractRenderState(g, mouseX, mouseY, delta);
@@ -157,8 +194,10 @@ public final class CompanionScreen extends Screen {
         if (view == View.LEADERBOARD) { x = left + 68; width = 66; }
         else if (view == View.ACCOUNTS) { x = left + 138; width = 64; }
         else if (view == View.SERVERS) { x = left + 206; width = 58; }
+        else if (view == View.EXPLORE || view == View.EXPLORE_CONTRACT) { x = left + 268; width = 58; }
         else if (view == View.NETHER) { x = left + 330; width = 56; }
         else if (view == View.END) { x = left + 390; width = 48; }
+        else if (view == View.RPG) { x = left + 442; width = 44; }
         g.fill(x, top + 58, x + width, top + 61, 0xFFC4B5FD);
     }
 
@@ -206,6 +245,69 @@ public final class CompanionScreen extends Screen {
     }
 
 
+    private void renderExplore(GuiGraphicsExtractor g, int left, int top, int w) {
+        ExplorationJournalState s = (ExplorationJournalState) state;
+        g.text(font, "EXPLORATION JOURNAL", left + 24, top + 101, 0xFFC4B5FD, true);
+        card(g, left + 24, top + 118, 142, "TOTAL KILLS", Long.toString(s.totalKills()), 0xFF86EFAC);
+        card(g, left + 189, top + 118, 142, "DISCOVERED", s.discoveredCount() + "/" + s.mobs().size(), 0xFFC4B5FD);
+        card(g, left + 354, top + 118, 142, "RARITY TIER", Integer.toString(s.highestRarityTier()), 0xFFFDE68A);
+        int y = top + 174;
+        int shown = 0;
+        for (ExplorationJournalState.MobEntry mob : s.mobs()) {
+            if (shown++ >= 5) break;
+            String name = mob.discovered() ? mob.name() : "Unknown creature";
+            String detail = mob.discovered() ? mob.kills() + " defeated" : "Not discovered";
+            g.text(font, name, left + 28, y, mob.discovered() ? 0xFFFFFFFF : 0xFF777080, mob.discovered());
+            g.text(font, detail, left + w - 28 - font.width(detail), y, mob.discovered() ? 0xFFAAA2B5 : 0xFF615A69, false);
+            y += 14;
+        }
+        String contract = s.contractName() + "  " + s.contractProgress() + "/" + s.contractTarget();
+        if (s.contractComplete()) contract += "  COMPLETE";
+        g.text(font, "Today: " + contract, left + 24, top + 250, s.contractComplete() ? 0xFF86EFAC : 0xFFAAA2B5, false);
+    }
+
+    private void renderExploreContract(GuiGraphicsExtractor g, int left, int top, int w) {
+        ExplorationContractState s = (ExplorationContractState) state;
+        g.text(font, "DAILY EXPEDITION", left + 24, top + 101, 0xFFC4B5FD, true);
+        g.text(font, s.name(), left + 24, top + 122, 0xFFFFFFFF, true);
+        g.text(font, s.description(), left + 24, top + 143, 0xFFD0C8DB, false);
+        g.fill(left + 24, top + 166, left + w - 24, top + 176, 0xFF2D2636);
+        int progressWidth = (int) Math.round((w - 48) * s.progressRatio());
+        if (progressWidth > 0) g.fill(left + 24, top + 166, left + 24 + progressWidth, top + 176, 0xFF8B5CF6);
+        String progress = s.progress() + " / " + s.target() + (s.complete() ? "  COMPLETE" : "");
+        g.text(font, progress, left + (w - font.width(progress)) / 2, top + 184, s.complete() ? 0xFF86EFAC : 0xFFFFFFFF, true);
+        g.fill(left + 24, top + 207, left + w - 24, top + 248, 0xFF181320);
+        g.text(font, "REWARDS", left + 36, top + 216, 0xFFC4B5FD, true);
+        g.text(font, s.rewardXp() + " RPG XP", left + 36, top + 232, 0xFFFFFFFF, false);
+        String reward = s.rewardAmount() + "x " + s.rewardItem();
+        g.text(font, reward, left + w - 36 - font.width(reward), top + 232, 0xFFFDE68A, false);
+    }
+
+    private void renderRpg(GuiGraphicsExtractor g, int left, int top, int w) {
+        RpgStatsState s = (RpgStatsState) state;
+        g.text(font, "RPG CHARACTER", left + 24, top + 76, 0xFFC4B5FD, true);
+        String level = "Level " + s.level() + "  •  " + s.buildName() + "  •  Power " + fmt(s.buildScore());
+        g.text(font, level, left + 24, top + 92, 0xFFFFFFFF, true);
+        String xp = s.xpNeeded() <= 0 ? "MAX LEVEL" : s.xpIntoLevel() + "/" + s.xpNeeded() + " XP";
+        g.text(font, xp + "  •  Mana " + fmt(s.currentMana()) + "/" + fmt(s.manaCapacity()) + "  •  Unspent " + s.points(), left + 24, top + 107, 0xFFAAA2B5, false);
+        String[] keys = {"strength", "defence", "vitality", "agility", "intelligence"};
+        String[] names = {"Strength", "Defence", "Vitality", "Agility", "Intelligence"};
+        int y = top + 122;
+        for (int i = 0; i < keys.length; i++) {
+            String key = keys[i];
+            g.fill(left + 24, y, left + w - 152, y + 20, 0xFF181320);
+            int total = s.totalStat(key), base = s.stat(key), gear = s.equipment(key), temp = s.temporary(key);
+            String breakdown = Integer.toString(base);
+            if (gear != 0) breakdown += gear > 0 ? " +" + gear + " gear" : " " + gear + " gear";
+            if (temp != 0) breakdown += temp > 0 ? " +" + temp + " buff" : " " + temp + " debuff";
+            g.text(font, names[i].toUpperCase() + "  " + total, left + 34, y + 6, 0xFFFFFFFF, true);
+            g.text(font, breakdown, left + 166, y + 6, 0xFFAAA2B5, false);
+            y += 23;
+        }
+        String respec = s.respecCooldownSeconds() > 0 ? "Respec in " + duration(s.respecCooldownSeconds()) : "Allocated " + s.spentPoints() + "/" + s.totalPoints();
+        g.text(font, respec, left + 190, top + 246, 0xFFAAA2B5, false);
+    }
+
     private void renderNether(GuiGraphicsExtractor g, int left, int top, int w) {
         NetherCompanionState s = (NetherCompanionState) state;
         g.text(font, "NETHER ATTUNEMENT", left + 24, top + 76, 0xFFFFB86B, true);
@@ -251,6 +353,11 @@ public final class CompanionScreen extends Screen {
     private static String duration(long seconds) {
         long m = Math.max(0L, seconds) / 60L, s = Math.max(0L, seconds) % 60L;
         return m > 0 ? m + "m " + s + "s" : s + "s";
+    }
+
+    private static String fmt(double value) {
+        if (Math.abs(value - Math.rint(value)) < 0.0001D) return Long.toString(Math.round(value));
+        return String.format(java.util.Locale.ROOT, "%.1f", value);
     }
 
     private void renderServers(GuiGraphicsExtractor g, int left, int top, int w) {
