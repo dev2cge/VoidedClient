@@ -1,21 +1,9 @@
-# VoidedClient 1.9.0 — Wave 4A Companion
+# VoidedClient 1.11.0 — End Companion Foundation
 
-VoidedClient 1.9.0 is the Wave 4A QoL/server-companion release for Minecraft 26.2. The latest completed pre-Wave-4A baseline is 1.8.3.
+VoidedClient remains an optional QoL/server companion for Voided Network. Version 1.11.0 begins Wave 4C with an End progression page while retaining the complete 1.10.0 Nether dashboard, leaderboards, linked accounts, server navigation, exploration and RPG interfaces.
 
-## Companion dashboard
+## End companion
+The U-key Companion now exposes End Attunement, End kills, custom variant discoveries, harvested nodes, UTC daily contract progress and live shared End-event state. All progression and rewards remain server-authoritative in VoidedCore.
 
-Press **U** to open the unified Voided Network dashboard. It provides server-authoritative profile highlights, network-wide online presence, paginated balance/playtime/RPG leaderboards, Minecraft and Discord link status, a paginated interactive server browser, and shortcuts into the existing Exploration and RPG interfaces.
-
-The client never receives Discord credentials, website sessions, authentication tokens or authoritative economy/RPG state that it can modify. VoidedCore validates every request and remains authoritative. Players without the mod retain `/companion` and existing chat/command fallbacks.
-
-## Existing RPG and exploration QoL
-
-- **J** — RPG Stats
-- **H** — Move/configure the RPG HUD on Fabric
-- **K** — Exploration Journal and Daily Expedition access
-- **R** — Stored-XP Mending repair action
-- **Z/X/C/V/B** — Power Strike, Bulwark, Second Wind, Dash and Arcane Surge
-
-Dash continues to send only yaw/pitch and local WASD intent; VoidedCore owns validation and final movement.
-
-See `PROTOCOL.md`, `COMPATIBILITY.md` and `WAVE-ROADMAP.md` for details.
+## Compatibility
+The client does not become a gameplay authority. Vanilla clients keep `/end` and `/companion end` fallbacks. Fabric and Forge advertise `end-companion-v1` only when this client build is installed.

@@ -19,6 +19,8 @@ public final class VoidedProtocol {
     public static final String ACTION_ACCOUNTS_UNLINK = "accounts.unlink";
     public static final String ACTION_SERVER_LIST = "server.list";
     public static final String ACTION_SERVER_SWITCH = "server.switch";
+    public static final String ACTION_NETHER_COMPANION = "nether.companion";
+    public static final String ACTION_END_COMPANION = "end.companion";
     public static final String CAP_RPG_UI = "rpg-ui";
     public static final String CAP_RPG_STAT_SPEND = "rpg-stat-spend";
     public static final String CAP_RPG_STAT_RESPEC = "rpg-stat-respec";
@@ -33,6 +35,8 @@ public final class VoidedProtocol {
     public static final String CAP_LEADERBOARDS = "leaderboards-v1";
     public static final String CAP_LINKED_ACCOUNTS = "linked-accounts-v1";
     public static final String CAP_SERVER_NAVIGATION = "server-navigation-v1";
+    public static final String CAP_NETHER_COMPANION = "nether-companion-v1";
+    public static final String CAP_END_COMPANION = "end-companion-v1";
     private VoidedProtocol() {}
 
     public static byte[] hello(String loader, String modVersion, String minecraftVersion) { return hello(loader, modVersion, minecraftVersion, ""); }

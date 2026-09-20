@@ -15,3 +15,10 @@
 - **Wave 5 — Economy & Player Commerce:** broader player commerce and market QoL on top of the server-authoritative economy.
 - **Wave 6 — Core UX, Staff & Permissions:** unified everyday UX, staff operations, permission/admin tooling and network-aware controls.
 - **Wave 7 — Web Control Centre & Staff Operations:** live network visibility and secure staff operations through the existing API/security model.
+
+
+### Wave 4B — Nether Expansion — Complete in 1.10.0
+- Nether companion tab
+- Attunement and discoveries
+- Daily Nether contract status
+- Infernal Sovereign status

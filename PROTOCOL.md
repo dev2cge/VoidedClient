@@ -41,3 +41,26 @@ Clients advertise `companion-home-v1,leaderboards-v1,linked-accounts-v1,server-n
 - `VC1|ACTION|server.switch|serverId`
 
 VoidedCore 6.52.1 independently validates capabilities, feature configuration, permissions, leaderboard pages and server destinations. Hidden selector backends are not exposed through the companion browser. No Discord ID, token, website session, IP address or authentication secret is transmitted.
+
+
+## Wave 4B Nether companion (1.10.0)
+
+Capability: `nether-companion-v1`
+
+Client action: `VC1|ACTION|nether.companion`
+
+Server response:
+`VC1|NETHER_COMPANION|level|xpIntoLevel|xpNeeded|kills|variantKills|ores|variantDiscoveries|landmarks|landmarkTotal|contract|contractProgress|contractTarget|contractComplete|bossState|bossRespawnSeconds`
+
+The server owns every value in this payload. The client only renders it.
+
+## Wave 4C End companion (1.11.0)
+
+Capability: `end-companion-v1`
+
+Client action: `end.companion`
+
+Server response:
+`VC1|END_COMPANION|level|xp|needed|kills|variantKills|nodes|variantDiscoveries|contract|contractProgress|contractTarget|contractComplete|eventState|eventRemaining`
+
+The payload is display-only. End Attunement, contracts, events, drops and ritual requirements remain server-authoritative.

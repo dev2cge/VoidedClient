@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 /** Unified Voided Network companion dashboard. All displayed state is supplied by VoidedCore. */
 public final class CompanionScreen extends Screen {
     private static final int SERVER_PAGE_SIZE = 7;
-    private enum View { HOME, LEADERBOARD, ACCOUNTS, SERVERS }
+    private enum View { HOME, LEADERBOARD, ACCOUNTS, SERVERS, NETHER, END }
 
     private final View view;
     private final Object state;
@@ -31,19 +31,25 @@ public final class CompanionScreen extends Screen {
     public static CompanionScreen leaderboard(LeaderboardState state, Consumer<byte[]> send) { return new CompanionScreen(View.LEADERBOARD, state, send, 0); }
     public static CompanionScreen accounts(LinkedAccountsState state, Consumer<byte[]> send) { return new CompanionScreen(View.ACCOUNTS, state, send, 0); }
     public static CompanionScreen servers(ServerListState state, Consumer<byte[]> send) { return new CompanionScreen(View.SERVERS, state, send, 0); }
+    public static CompanionScreen nether(NetherCompanionState state, Consumer<byte[]> send) { return new CompanionScreen(View.NETHER, state, send, 0); }
+    public static CompanionScreen end(EndCompanionState state, Consumer<byte[]> send) { return new CompanionScreen(View.END, state, send, 0); }
 
     @Override protected void init() {
         int w = Math.min(520, width - 24), left = (width - w) / 2, top = Math.max(8, (height - 300) / 2);
-        tab(left + 12, top + 36, 72, "Home", () -> request(VoidedProtocol.ACTION_COMPANION_HOME));
-        tab(left + 88, top + 36, 104, "Leaderboards", () -> request(VoidedProtocol.ACTION_LEADERBOARD_REQUEST, "balance", "1"));
-        tab(left + 196, top + 36, 82, "Accounts", () -> request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST));
-        tab(left + 282, top + 36, 76, "Servers", () -> request(VoidedProtocol.ACTION_SERVER_LIST));
-        tab(left + 362, top + 36, 68, "Explore", () -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
-        tab(left + 434, top + 36, 62, "RPG", () -> request(VoidedProtocol.ACTION_RPG_STATS));
+        tab(left + 12, top + 36, 52, "Home", () -> request(VoidedProtocol.ACTION_COMPANION_HOME));
+        tab(left + 68, top + 36, 66, "Leaders", () -> request(VoidedProtocol.ACTION_LEADERBOARD_REQUEST, "balance", "1"));
+        tab(left + 138, top + 36, 64, "Accounts", () -> request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST));
+        tab(left + 206, top + 36, 58, "Servers", () -> request(VoidedProtocol.ACTION_SERVER_LIST));
+        tab(left + 268, top + 36, 58, "Explore", () -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
+        tab(left + 330, top + 36, 56, "Nether", () -> request(VoidedProtocol.ACTION_NETHER_COMPANION));
+        tab(left + 390, top + 36, 48, "End", () -> request(VoidedProtocol.ACTION_END_COMPANION));
+        tab(left + 442, top + 36, 44, "RPG", () -> request(VoidedProtocol.ACTION_RPG_STATS));
 
         if (view == View.HOME) initHome(left, top, w);
         else if (view == View.LEADERBOARD) initLeaderboard(left, top, w);
         else if (view == View.ACCOUNTS) initAccounts(left, top, w);
+        else if (view == View.NETHER) initNether(left, top, w);
+        else if (view == View.END) initEnd(left, top, w);
         else initServers(left, top, w);
 
         addRenderableWidget(Button.builder(Component.literal("Close"), b -> minecraft.gui.setScreen(null)).bounds(left + w - 72, top + 266, 60, 22).build());
@@ -53,8 +59,10 @@ public final class CompanionScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("View Leaderboards"), b -> request(VoidedProtocol.ACTION_LEADERBOARD_REQUEST, "balance", "1")).bounds(left + 24, top + 166, 146, 24).build());
         addRenderableWidget(Button.builder(Component.literal("Linked Accounts"), b -> request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST)).bounds(left + 176, top + 166, 146, 24).build());
         addRenderableWidget(Button.builder(Component.literal("Server Browser"), b -> request(VoidedProtocol.ACTION_SERVER_LIST)).bounds(left + 328, top + 166, 146, 24).build());
-        addRenderableWidget(Button.builder(Component.literal("Exploration Journal"), b -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)).bounds(left + 100, top + 202, 146, 24).build());
-        addRenderableWidget(Button.builder(Component.literal("RPG Character"), b -> request(VoidedProtocol.ACTION_RPG_STATS)).bounds(left + 274, top + 202, 146, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("Exploration"), b -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)).bounds(left + 32, top + 202, 108, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("Nether"), b -> request(VoidedProtocol.ACTION_NETHER_COMPANION)).bounds(left + 148, top + 202, 100, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("End"), b -> request(VoidedProtocol.ACTION_END_COMPANION)).bounds(left + 256, top + 202, 90, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("RPG Character"), b -> request(VoidedProtocol.ACTION_RPG_STATS)).bounds(left + 354, top + 202, 132, 24).build());
     }
 
     private void initLeaderboard(int left, int top, int w) {
@@ -75,6 +83,15 @@ public final class CompanionScreen extends Screen {
         String label = s.discordLinked() ? "Unlink Discord" : "Create Link Code";
         addRenderableWidget(Button.builder(Component.literal(label), b -> request(s.discordLinked() ? VoidedProtocol.ACTION_ACCOUNTS_UNLINK : VoidedProtocol.ACTION_ACCOUNTS_LINK)).bounds(left + 24, top + 184, 148, 24).build());
         addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST)).bounds(left + 180, top + 184, 86, 24).build());
+    }
+
+
+    private void initNether(int left, int top, int w) {
+        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_NETHER_COMPANION)).bounds(left + 24, top + 236, 78, 22).build());
+    }
+
+    private void initEnd(int left, int top, int w) {
+        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_END_COMPANION)).bounds(left + 24, top + 236, 78, 22).build());
     }
 
     private void initServers(int left, int top, int w) {
@@ -124,6 +141,8 @@ public final class CompanionScreen extends Screen {
         if (view == View.HOME) renderHome(g, left, top, w);
         else if (view == View.LEADERBOARD) renderLeaderboard(g, left, top, w);
         else if (view == View.ACCOUNTS) renderAccounts(g, left, top, w);
+        else if (view == View.NETHER) renderNether(g, left, top, w);
+        else if (view == View.END) renderEnd(g, left, top, w);
         else renderServers(g, left, top, w);
     }
 
@@ -168,6 +187,50 @@ public final class CompanionScreen extends Screen {
         } else {
             g.text(font, "Only link status is sent to the client. No account tokens are exposed.", left + 24, top + 220, 0xFF777080, false);
         }
+    }
+
+
+    private void renderNether(GuiGraphicsExtractor g, int left, int top, int w) {
+        NetherCompanionState s = (NetherCompanionState) state;
+        g.text(font, "NETHER ATTUNEMENT", left + 24, top + 76, 0xFFFFB86B, true);
+        String level = "Level " + s.level() + (s.needed() <= 0 ? "  MAX" : "  -  " + s.xp() + "/" + s.needed() + " XP");
+        g.text(font, level, left + 24, top + 96, 0xFFFFFFFF, true);
+        card(g, left + 24, top + 118, 142, "NETHER KILLS", Long.toString(s.kills()), 0xFFFFB86B);
+        card(g, left + 189, top + 118, 142, "VARIANTS", s.variantDiscoveries() + "/4 discovered", 0xFFFDE68A);
+        card(g, left + 354, top + 118, 142, "LANDMARKS", s.landmarks() + "/" + s.landmarkTotal(), 0xFFC4B5FD);
+        String contract = s.contract() + "  " + s.contractProgress() + "/" + s.contractTarget() + (s.contractComplete() ? "  COMPLETE" : "");
+        g.text(font, "Daily Contract", left + 24, top + 176, 0xFFAAA2B5, false);
+        g.text(font, contract, left + 24, top + 191, s.contractComplete() ? 0xFF86EFAC : 0xFFFFFFFF, true);
+        String boss = "Infernal Sovereign: " + humanizeBoss(s.bossState());
+        if (s.bossRespawnSeconds() > 0) boss += "  -  returns in " + duration(s.bossRespawnSeconds());
+        g.text(font, boss, left + 24, top + 216, 0xFFFF8A80, true);
+    }
+
+    private void renderEnd(GuiGraphicsExtractor g, int left, int top, int w) {
+        EndCompanionState s = (EndCompanionState) state;
+        g.text(font, "END ATTUNEMENT", left + 24, top + 76, 0xFFD8B4FE, true);
+        String level = "Level " + s.level() + (s.needed() <= 0 ? "  MAX" : "  -  " + s.xp() + "/" + s.needed() + " XP");
+        g.text(font, level, left + 24, top + 96, 0xFFFFFFFF, true);
+        card(g, left + 24, top + 118, 142, "END KILLS", Long.toString(s.kills()), 0xFFD8B4FE);
+        card(g, left + 189, top + 118, 142, "VARIANTS", s.variantDiscoveries() + "/3 discovered", 0xFFF0ABFC);
+        card(g, left + 354, top + 118, 142, "HARVESTED", Long.toString(s.nodes()), 0xFFC4B5FD);
+        String contract = s.contract() + "  " + s.contractProgress() + "/" + s.contractTarget() + (s.contractComplete() ? "  COMPLETE" : "");
+        g.text(font, "Daily Contract", left + 24, top + 176, 0xFFAAA2B5, false);
+        g.text(font, contract, left + 24, top + 191, s.contractComplete() ? 0xFF86EFAC : 0xFFFFFFFF, true);
+        String event = "Void Activity: " + humanizeBoss(s.eventState());
+        if (s.eventRemaining() > 0) event += "  -  " + s.eventRemaining() + " enemies remain";
+        g.text(font, event, left + 24, top + 216, 0xFFE879F9, true);
+    }
+
+    private static String humanizeBoss(String value) {
+        if (value == null || value.isEmpty()) return "Unknown";
+        String v = value.replace('_', ' ').replace('-', ' ');
+        return Character.toUpperCase(v.charAt(0)) + v.substring(1);
+    }
+
+    private static String duration(long seconds) {
+        long m = Math.max(0L, seconds) / 60L, s = Math.max(0L, seconds) % 60L;
+        return m > 0 ? m + "m " + s + "s" : s + "s";
     }
 
     private void renderServers(GuiGraphicsExtractor g, int left, int top, int w) {

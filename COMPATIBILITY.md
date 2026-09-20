@@ -1,5 +1,14 @@
 # Compatibility
 
+## 1.10.0 Wave 4B Nether companion
+
+- Designed for VoidedCore 6.55.0 and VoidedWorldGen 0.26.0.
+- Fabric and Forge adapters advertise `nether-companion-v1`.
+- Older servers simply ignore the capability and the rest of the client remains usable.
+- Nether gameplay remains fully usable without VoidedClient through `/nether`.
+
+# Compatibility
+
 ## 1.9.0 Wave 4A companion
 
 - Requires VoidedCore 6.52.1 for the completed native companion dashboard behavior.
