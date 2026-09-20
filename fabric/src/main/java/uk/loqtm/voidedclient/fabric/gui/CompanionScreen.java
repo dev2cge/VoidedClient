@@ -1,6 +1,5 @@
 package uk.loqtm.voidedclient.fabric.gui;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -126,34 +125,21 @@ public final class CompanionScreen extends Screen {
         if (minecraft != null) minecraft.gui.setScreen(new CompanionScreen(View.SERVERS, state, send, Math.max(0, page)));
     }
 
-    private void tab(int x, int y, int w, String label, Runnable action) {
-        boolean selected = isSelectedTab(label);
-        Component title = Component.literal(label).withStyle(selected ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.WHITE, ChatFormatting.BOLD);
-        addRenderableWidget(Button.builder(title, b -> action.run()).bounds(x, y, w, 22).build());
-    }
-
-    private boolean isSelectedTab(String label) {
-        if ("Home".equals(label)) return view == View.HOME;
-        if ("Leaders".equals(label)) return view == View.LEADERBOARD;
-        if ("Accounts".equals(label)) return view == View.ACCOUNTS;
-        if ("Servers".equals(label)) return view == View.SERVERS;
-        if ("Nether".equals(label)) return view == View.NETHER;
-        if ("End".equals(label)) return view == View.END;
-        return false;
-    }
+    private void tab(int x, int y, int w, String label, Runnable action) { addRenderableWidget(Button.builder(Component.literal(label), b -> action.run()).bounds(x, y, w, 22).build()); }
     private void request(String action) { send.accept(VoidedProtocol.action(action)); }
     private void request(String action, String arg) { send.accept(VoidedProtocol.action(action, arg)); }
     private void request(String action, String a, String b) { send.accept(VoidedProtocol.action(action, a, b)); }
 
     @Override public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float delta) {
-        super.extractRenderState(g, mouseX, mouseY, delta);
         int w = Math.min(520, width - 24), left = (width - w) / 2, top = Math.max(8, (height - 300) / 2), right = left + w;
+        // Draw the custom panel BEFORE vanilla widgets. Previously super.extractRenderState()
+        // ran first, then this opaque panel was painted over the tab buttons, leaving their
+        // labels/backgrounds almost invisible.
         g.fill(left - 1, top - 1, right + 1, top + 301, 0xFF6D28D9);
         g.fill(left, top, right, top + 300, 0xF40D0B14);
         g.fill(left, top, right, top + 4, 0xFF8B5CF6);
-        // High-contrast navigation rail: keeps tab labels readable on both vanilla and custom GUI themes.
-        g.fill(left + 10, top + 32, right - 10, top + 63, 0xFF181320);
-        g.fill(left + 10, top + 62, right - 10, top + 63, 0xFF6D28D9);
+        g.fill(left + 10, top + 33, right - 10, top + 61, 0xFF171221);
+        drawActiveTabMarker(g, left, top);
         g.text(font, "VOIDED NETWORK", left + 14, top + 14, 0xFFE9D5FF, true);
         g.text(font, "COMPANION", right - 14 - font.width("COMPANION"), top + 14, 0xFF8B5CF6, true);
         if (view == View.HOME) renderHome(g, left, top, w);
@@ -162,6 +148,18 @@ public final class CompanionScreen extends Screen {
         else if (view == View.NETHER) renderNether(g, left, top, w);
         else if (view == View.END) renderEnd(g, left, top, w);
         else renderServers(g, left, top, w);
+        // Widgets last: keeps every tab/button readable and clickable above the panel.
+        super.extractRenderState(g, mouseX, mouseY, delta);
+    }
+
+    private void drawActiveTabMarker(GuiGraphicsExtractor g, int left, int top) {
+        int x = left + 12, width = 52;
+        if (view == View.LEADERBOARD) { x = left + 68; width = 66; }
+        else if (view == View.ACCOUNTS) { x = left + 138; width = 64; }
+        else if (view == View.SERVERS) { x = left + 206; width = 58; }
+        else if (view == View.NETHER) { x = left + 330; width = 56; }
+        else if (view == View.END) { x = left + 390; width = 48; }
+        g.fill(x, top + 58, x + width, top + 61, 0xFFC4B5FD);
     }
 
     private void renderHome(GuiGraphicsExtractor g, int left, int top, int w) {
@@ -231,13 +229,17 @@ public final class CompanionScreen extends Screen {
         g.text(font, level, left + 24, top + 96, 0xFFFFFFFF, true);
         card(g, left + 24, top + 118, 142, "END KILLS", Long.toString(s.kills()), 0xFFD8B4FE);
         card(g, left + 189, top + 118, 142, "VARIANTS", s.variantDiscoveries() + "/3 discovered", 0xFFF0ABFC);
-        card(g, left + 354, top + 118, 142, "HARVESTED", Long.toString(s.nodes()), 0xFFC4B5FD);
+        String landmarks = s.landmarkTotal() <= 0 ? "Not scanned" : s.landmarks() + "/" + s.landmarkTotal();
+        card(g, left + 354, top + 118, 142, "LANDMARKS", landmarks, 0xFFC4B5FD);
         String contract = s.contract() + "  " + s.contractProgress() + "/" + s.contractTarget() + (s.contractComplete() ? "  COMPLETE" : "");
         g.text(font, "Daily Contract", left + 24, top + 176, 0xFFAAA2B5, false);
         g.text(font, contract, left + 24, top + 191, s.contractComplete() ? 0xFF86EFAC : 0xFFFFFFFF, true);
-        String event = "Void Activity: " + humanizeBoss(s.eventState());
+        String boss = "Void Arbiter: " + humanizeBoss(s.bossState());
+        if (s.bossRespawnSeconds() > 0) boss += "  -  returns in " + duration(s.bossRespawnSeconds());
+        g.text(font, boss, left + 24, top + 216, 0xFFE879F9, true);
+        String event = "End activity: " + humanizeBoss(s.eventState());
         if (s.eventRemaining() > 0) event += "  -  " + s.eventRemaining() + " enemies remain";
-        g.text(font, event, left + 24, top + 216, 0xFFE879F9, true);
+        g.text(font, event + "  |  Harvested: " + s.nodes(), left + 24, top + 236, 0xFFAAA2B5, false);
     }
 
     private static String humanizeBoss(String value) {
