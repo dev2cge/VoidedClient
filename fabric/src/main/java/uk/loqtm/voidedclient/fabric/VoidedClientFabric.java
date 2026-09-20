@@ -31,6 +31,7 @@ import uk.loqtm.voidedclient.protocol.LeaderboardState;
 import uk.loqtm.voidedclient.protocol.LinkedAccountsState;
 import uk.loqtm.voidedclient.protocol.ServerListState;
 import uk.loqtm.voidedclient.protocol.NetherCompanionState;
+import uk.loqtm.voidedclient.protocol.EndCompanionState;
 
 import java.nio.charset.StandardCharsets;
 
