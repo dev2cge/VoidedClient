@@ -1,5 +1,6 @@
 package uk.loqtm.voidedclient.fabric.gui;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -125,7 +126,21 @@ public final class CompanionScreen extends Screen {
         if (minecraft != null) minecraft.gui.setScreen(new CompanionScreen(View.SERVERS, state, send, Math.max(0, page)));
     }
 
-    private void tab(int x, int y, int w, String label, Runnable action) { addRenderableWidget(Button.builder(Component.literal(label), b -> action.run()).bounds(x, y, w, 22).build()); }
+    private void tab(int x, int y, int w, String label, Runnable action) {
+        boolean selected = isSelectedTab(label);
+        Component title = Component.literal(label).withStyle(selected ? ChatFormatting.LIGHT_PURPLE : ChatFormatting.WHITE, ChatFormatting.BOLD);
+        addRenderableWidget(Button.builder(title, b -> action.run()).bounds(x, y, w, 22).build());
+    }
+
+    private boolean isSelectedTab(String label) {
+        if ("Home".equals(label)) return view == View.HOME;
+        if ("Leaders".equals(label)) return view == View.LEADERBOARD;
+        if ("Accounts".equals(label)) return view == View.ACCOUNTS;
+        if ("Servers".equals(label)) return view == View.SERVERS;
+        if ("Nether".equals(label)) return view == View.NETHER;
+        if ("End".equals(label)) return view == View.END;
+        return false;
+    }
     private void request(String action) { send.accept(VoidedProtocol.action(action)); }
     private void request(String action, String arg) { send.accept(VoidedProtocol.action(action, arg)); }
     private void request(String action, String a, String b) { send.accept(VoidedProtocol.action(action, a, b)); }
@@ -136,6 +151,9 @@ public final class CompanionScreen extends Screen {
         g.fill(left - 1, top - 1, right + 1, top + 301, 0xFF6D28D9);
         g.fill(left, top, right, top + 300, 0xF40D0B14);
         g.fill(left, top, right, top + 4, 0xFF8B5CF6);
+        // High-contrast navigation rail: keeps tab labels readable on both vanilla and custom GUI themes.
+        g.fill(left + 10, top + 32, right - 10, top + 63, 0xFF181320);
+        g.fill(left + 10, top + 62, right - 10, top + 63, 0xFF6D28D9);
         g.text(font, "VOIDED NETWORK", left + 14, top + 14, 0xFFE9D5FF, true);
         g.text(font, "COMPANION", right - 14 - font.width("COMPANION"), top + 14, 0xFF8B5CF6, true);
         if (view == View.HOME) renderHome(g, left, top, w);
