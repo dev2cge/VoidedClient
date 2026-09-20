@@ -1,6 +1,13 @@
 # Compatibility
 
-<<<<<<< HEAD
+## 1.9.0 Wave 4A companion
+
+- Requires VoidedCore 6.52.1 for the completed native companion dashboard behavior.
+- VoidedClient 1.8.3 remains the completed pre-Wave-4A baseline and continues to work with existing RPG/Exploration fallbacks.
+- Fabric and Forge advertise companion capabilities independently; VoidedCore only sends supported native sections.
+- Server navigation remains permission- and destination-validated by Core, and hidden selector backends are not exposed.
+- The client remains optional and does not use mixins, coremods or Lunar-private hooks.
+
 ## 1.8.2 Wave 3 completion
 
 - Requires VoidedCore 6.50.0 for the native Daily Expedition contract packet and final floor-safe/vertical Dash rules.
@@ -10,11 +17,6 @@
 ## 1.8.1 WASD Dash and exploration journal
 
 - Dash combines validated yaw/pitch with W, A, S and D input. VoidedCore 6.50.0 applies pitch to every movement direction, preserves stationary vertical intent and prevents downward floor collisions.
-=======
-## 1.8.1 WASD Dash and exploration journal
-
-- Dash combines validated yaw/pitch with W, A, S and D input. Forward movement may use pitch; backward and sideways movement remains horizontal.
->>>>>>> 3b7f1f883f5e96a10d2589a168b920d9c11e9734
 - Fabric and Forge can request the native server-authoritative Exploration Journal with K.
 - VoidedCore 6.49.1 is required for the new directional payload and journal packet. Older client/Core combinations retain their existing fallbacks.
 
