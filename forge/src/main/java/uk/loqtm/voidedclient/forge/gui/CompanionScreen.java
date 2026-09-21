@@ -146,9 +146,9 @@ public final class CompanionScreen extends Screen {
         int y = top + 78;
         for (int i = from; i < to; i++) {
             ServerListState.Entry entry = entries.get(i);
-            String text = entry.name() + "  -  " + entry.online() + " online" + (entry.current() ? "  (You are here)" : "");
-            Button button = Button.builder(Component.literal(text), b -> { if (!entry.current()) request(VoidedProtocol.ACTION_SERVER_SWITCH, entry.id()); }).bounds(left + 24, y, w - 48, 22).build();
-            button.active = !entry.current();
+            String text = entry.name() + "  -  " + (entry.available() ? entry.online() + " online" : "OFFLINE") + (entry.current() ? "  (You are here)" : "");
+            Button button = Button.builder(Component.literal(text), b -> { if (!entry.current() && entry.available()) request(VoidedProtocol.ACTION_SERVER_SWITCH, entry.id()); }).bounds(left + 24, y, w - 48, 22).build();
+            button.active = !entry.current() && entry.available();
             addRenderableWidget(button);
             y += 25;
         }
