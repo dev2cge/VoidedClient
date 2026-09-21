@@ -44,11 +44,11 @@ public final class CompanionScreen extends Screen {
         tab(left + 64, top + 36, 60, "Leaders", () -> request(VoidedProtocol.ACTION_LEADERBOARD_REQUEST, "balance", "1"));
         tab(left + 128, top + 36, 58, "Accounts", () -> request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST));
         tab(left + 190, top + 36, 52, "Servers", () -> request(VoidedProtocol.ACTION_SERVER_LIST));
-        tab(left + 246, top + 36, 52, "Explore", () -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
-        tab(left + 302, top + 36, 50, "Nether", () -> request(VoidedProtocol.ACTION_NETHER_COMPANION));
-        tab(left + 356, top + 36, 40, "End", () -> request(VoidedProtocol.ACTION_END_COMPANION));
-        tab(left + 400, top + 36, 40, "RPG", () -> request(VoidedProtocol.ACTION_RPG_STATS));
-        tab(left + 444, top + 36, 64, "Endgame", () -> request(VoidedProtocol.ACTION_ENDGAME_COMPANION));
+        tab(left + 246, top + 36, 52, "Explore", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL); });
+        tab(left + 302, top + 36, 50, "Nether", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_NETHER_COMPANION); });
+        tab(left + 356, top + 36, 40, "End", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_END_COMPANION); });
+        tab(left + 400, top + 36, 40, "RPG", () -> { if (ServerContextState.isRpgEnabled()) request(VoidedProtocol.ACTION_RPG_STATS); });
+        tab(left + 444, top + 36, 64, "Endgame", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_ENDGAME_COMPANION); });
 
         if (view == View.HOME) initHome(left, top, w);
         else if (view == View.LEADERBOARD) initLeaderboard(left, top, w);
