@@ -72,3 +72,10 @@ The payload is display-only. End Attunement, contracts, events, drops and ritual
 
 Capability: `endgame-companion-v1`  
 Action: `endgame.companion`
+
+
+### Server context
+
+`VC1|SERVER_CONTEXT|serverId|serverType|edition|rpgEnabled|gameplayEnabled`
+
+Capability: `server-context-v1`. The client treats backend context as unknown/disabled during a Velocity switch until the destination backend sends a fresh context packet.

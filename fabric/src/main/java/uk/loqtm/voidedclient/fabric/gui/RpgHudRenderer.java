@@ -3,6 +3,7 @@ package uk.loqtm.voidedclient.fabric.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import uk.loqtm.voidedclient.protocol.RpgHudState;
+import uk.loqtm.voidedclient.protocol.ServerContextState;
 import java.util.Locale;
 
 /** Separate, low-profile HUD elements with per-element persisted placement. */
@@ -19,7 +20,7 @@ public final class RpgHudRenderer {
     public static void render(GuiGraphicsExtractor graphics, net.minecraft.client.DeltaTracker tickCounter) {
         RpgHudState value = state;
         Minecraft minecraft = Minecraft.getInstance();
-        if (value == null || minecraft.player == null) return;
+        if (value == null || minecraft.player == null || !ServerContextState.rpgEnabled()) return;
         int width = minecraft.getWindow().getGuiScaledWidth();
         int height = minecraft.getWindow().getGuiScaledHeight();
         draw(graphics, minecraft, RpgHudConfig.Element.HEALTH, "❤ " + fmt(value.health()) + "/" + fmt(value.maxHealth()), value.maxHealth() <= 0D ? 0D : value.health() / value.maxHealth(), 0xFFF87171, width, height);

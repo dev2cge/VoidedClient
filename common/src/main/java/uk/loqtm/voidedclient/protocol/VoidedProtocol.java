@@ -36,6 +36,7 @@ public final class VoidedProtocol {
     public static final String CAP_LEADERBOARDS = "leaderboards-v1";
     public static final String CAP_LINKED_ACCOUNTS = "linked-accounts-v1";
     public static final String CAP_SERVER_NAVIGATION = "server-navigation-v1";
+    public static final String CAP_SERVER_CONTEXT = "server-context-v1";
     public static final String CAP_NETHER_COMPANION = "nether-companion-v1";
     public static final String CAP_END_COMPANION = "end-companion-v1";
     public static final String CAP_ENDGAME_COMPANION = "endgame-companion-v1";

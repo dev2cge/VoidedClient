@@ -28,6 +28,7 @@ import uk.loqtm.voidedclient.protocol.ServerListState;
 import uk.loqtm.voidedclient.protocol.NetherCompanionState;
 import uk.loqtm.voidedclient.protocol.EndCompanionState;
 import uk.loqtm.voidedclient.protocol.EndgameCompanionState;
+import uk.loqtm.voidedclient.protocol.ServerContextState;
 
 import java.nio.charset.StandardCharsets;
 
@@ -64,13 +65,13 @@ public final class VoidedClientForge {
     }
     private void keys(RegisterKeyMappingsEvent event) { event.register(repair); event.register(rpgStats); event.register(explorationJournal); event.register(companion); event.register(powerStrike); event.register(bulwark); event.register(secondWind); event.register(dash); event.register(arcaneSurge); }
     private void login(ClientPlayerNetworkEvent.LoggingIn event) { helloDelay = 20; lastRepairSent = 0L; lastStatsSent = 0L; }
-    private void logout(ClientPlayerNetworkEvent.LoggingOut event) { helloDelay = -1; }
+    private void logout(ClientPlayerNetworkEvent.LoggingOut event) { helloDelay = -1; ServerContextState.clear(); }
     private void tick(TickEvent.ClientTickEvent.Post event) {
         if (helloDelay >= 0 && --helloDelay == 0) { sendHello(); helloDelay = -1; }
         Minecraft mc = Minecraft.getInstance(); if (mc.player == null || mc.gui.screen() != null) return;
         long now = System.currentTimeMillis();
-        if (repair.isDown() && now - lastRepairSent >= REPAIR_REPEAT_MS) { lastRepairSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_REPAIR)); }
-        if (rpgStats.isDown() && now - lastStatsSent >= 500L) { lastStatsSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS)); }
+        if (ServerContextState.gameplayEnabled() && repair.isDown() && now - lastRepairSent >= REPAIR_REPEAT_MS) { lastRepairSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_REPAIR)); }
+        if (ServerContextState.rpgEnabled() && rpgStats.isDown() && now - lastStatsSent >= 500L) { lastStatsSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS)); }
         while (explorationJournal.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
         while (companion.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_COMPANION_HOME));
         castIfPressed(powerStrike, "power-strike"); castIfPressed(bulwark, "bulwark"); castIfPressed(secondWind, "second-wind"); castIfPressed(dash, "dash"); castIfPressed(arcaneSurge, "arcane-surge");
@@ -86,12 +87,13 @@ public final class VoidedClientForge {
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
         send(VoidedProtocol.hello("forge", "1.10.0", gameVersion,
-                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
+                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_SERVER_CONTEXT + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
     }
     private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
         if (!context.isClientSide()) return;
         String message = new String(payload.bytes(), StandardCharsets.UTF_8);
-        if (message.startsWith("VC1|PROBE|")) { sendHello(); return; }
+        if (message.startsWith("VC1|PROBE|")) { ServerContextState.awaitingBackend(); sendHello(); return; }
+        if (message.startsWith("VC1|SERVER_CONTEXT|")) { ServerContextState state=ServerContextState.parse(message); if(state!=null)ServerContextState.update(state); return; }
         if (message.startsWith("VC1|RPG_STATS|") || message.startsWith("VC1|RPG_STATS_V2|") || message.startsWith("VC1|RPG_STATS_V3|")) { RpgStatsState state = RpgStatsState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(CompanionScreen.rpg(state, VoidedClientForge::send)); }
         if (message.startsWith("VC1|EXPLORATION_JOURNAL|")) { ExplorationJournalState state = ExplorationJournalState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(CompanionScreen.explore(state, VoidedClientForge::send)); }
         if (message.startsWith("VC1|EXPLORATION_CONTRACT|")) { ExplorationContractState state = ExplorationContractState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(CompanionScreen.exploreContract(state, VoidedClientForge::send)); }
