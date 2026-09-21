@@ -27,6 +27,7 @@ import uk.loqtm.voidedclient.protocol.LinkedAccountsState;
 import uk.loqtm.voidedclient.protocol.ServerListState;
 import uk.loqtm.voidedclient.protocol.NetherCompanionState;
 import uk.loqtm.voidedclient.protocol.EndCompanionState;
+import uk.loqtm.voidedclient.protocol.EndgameCompanionState;
 
 import java.nio.charset.StandardCharsets;
 
@@ -85,7 +86,7 @@ public final class VoidedClientForge {
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
         send(VoidedProtocol.hello("forge", "1.10.0", gameVersion,
-                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION));
+                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
     }
     private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
         if (!context.isClientSide()) return;
@@ -100,6 +101,7 @@ public final class VoidedClientForge {
         if (message.startsWith("VC1|SERVER_LIST|")) { ServerListState state=ServerListState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.servers(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|NETHER_COMPANION|")) { NetherCompanionState state=NetherCompanionState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.nether(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|END_COMPANION|")) { EndCompanionState state=EndCompanionState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.end(state,VoidedClientForge::send)); }
+        if (message.startsWith("VC1|ENDGAME_COMPANION|")) { EndgameCompanionState state=EndgameCompanionState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.endgame(state,VoidedClientForge::send)); }
     }
     private static void send(byte[] bytes) {
         try { Minecraft mc = Minecraft.getInstance(); if (mc.getConnection() == null) return; NETWORK.send(new RawPayload(bytes), PacketDistributor.SERVER.noArg()); } catch (Throwable ignored) {}

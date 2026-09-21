@@ -29,6 +29,7 @@ import uk.loqtm.voidedclient.protocol.LinkedAccountsState;
 import uk.loqtm.voidedclient.protocol.ServerListState;
 import uk.loqtm.voidedclient.protocol.NetherCompanionState;
 import uk.loqtm.voidedclient.protocol.EndCompanionState;
+import uk.loqtm.voidedclient.protocol.EndgameCompanionState;
 
 import java.nio.charset.StandardCharsets;
 
@@ -76,6 +77,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
             if (message.startsWith("VC1|SERVER_LIST|")) { ServerListState state=ServerListState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.servers(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|NETHER_COMPANION|")) { NetherCompanionState state=NetherCompanionState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.nether(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|END_COMPANION|")) { EndCompanionState state=EndCompanionState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.end(state,VoidedClientFabric::send))); }
+            if (message.startsWith("VC1|ENDGAME_COMPANION|")) { EndgameCompanionState state=EndgameCompanionState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.endgame(state,VoidedClientFabric::send))); }
         });
 
         HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Identifier.fromNamespaceAndPath("voidedclient", "rpg_hud"), RpgHudRenderer::render);
@@ -118,7 +120,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
         send(VoidedProtocol.hello("fabric", "1.10.0", gameVersion,
-                VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION));
+                VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
     }
     private static void send(byte[] bytes) { try { ClientPlayNetworking.send(new RawPayload(bytes)); } catch (Throwable ignored) {} }
 

@@ -64,3 +64,11 @@ Server response:
 `VC1|END_COMPANION|level|xp|needed|kills|variantKills|nodes|variantDiscoveries|contract|contractProgress|contractTarget|contractComplete|eventState|eventRemaining`
 
 The payload is display-only. End Attunement, contracts, events, drops and ritual requirements remain server-authoritative.
+
+
+### Endgame Companion
+
+`VC1|ENDGAME_COMPANION|unlocked|ascension|marks|trialProgress|trialTarget|trialClaimed|lifetimeTrials|totalClears|standardClears|eliteClears|mythicClears|bestAscension|bestMode|gauntletActive|activeMode|activeWave|activeTotalWaves|remainingSeconds|completionPercent|completionComplete`
+
+Capability: `endgame-companion-v1`  
+Action: `endgame.companion`
