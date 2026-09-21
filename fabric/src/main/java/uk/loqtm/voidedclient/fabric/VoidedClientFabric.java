@@ -100,12 +100,12 @@ public final class VoidedClientFabric implements ClientModInitializer {
             if (helloDelay >= 0 && --helloDelay == 0) { sendHello(); helloDelay = -1; }
             if (client.player == null || client.gui.screen() != null) return;
             long now = System.currentTimeMillis();
-            if (ServerContextState.gameplayEnabled() && repair.isDown() && now - lastRepairSent >= REPAIR_REPEAT_MS) { lastRepairSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_REPAIR)); }
-            if (ServerContextState.rpgEnabled() && rpgStats.isDown() && now - lastStatsSent >= 500L) { lastStatsSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS)); }
+            if (ServerContextState.isGameplayEnabled() && repair.isDown() && now - lastRepairSent >= REPAIR_REPEAT_MS) { lastRepairSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_REPAIR)); }
+            if (ServerContextState.isRpgEnabled() && rpgStats.isDown() && now - lastStatsSent >= 500L) { lastStatsSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS)); }
             while (rpgHudLayout.consumeClick()) client.gui.setScreen(new RpgHudEditorScreen());
             while (explorationJournal.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
             while (companion.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_COMPANION_HOME));
-            if (ServerContextState.rpgEnabled()) { castIfPressed(powerStrike, "power-strike"); castIfPressed(bulwark, "bulwark"); castIfPressed(secondWind, "second-wind"); castIfPressed(dash, "dash"); castIfPressed(arcaneSurge, "arcane-surge"); }
+            if (ServerContextState.isRpgEnabled()) { castIfPressed(powerStrike, "power-strike"); castIfPressed(bulwark, "bulwark"); castIfPressed(secondWind, "second-wind"); castIfPressed(dash, "dash"); castIfPressed(arcaneSurge, "arcane-surge"); }
         });
     }
 

@@ -15,7 +15,7 @@ public record ServerContextState(String serverId, String serverType, String edit
     public static void awaitingBackend(){known=false;current=new ServerContextState("switching","UNKNOWN","unknown",false,false);}
     public static void clear(){awaitingBackend();}
     public static boolean isKnown(){return known;}
-    public static boolean rpgEnabled(){return known&&current.rpgEnabled;}
-    public static boolean gameplayEnabled(){return known&&current.gameplayEnabled;}
+    public static boolean isRpgEnabled(){return known&&current.rpgEnabled();}
+    public static boolean isGameplayEnabled(){return known&&current.gameplayEnabled();}
     public static ServerContextState current(){return current;}
 }

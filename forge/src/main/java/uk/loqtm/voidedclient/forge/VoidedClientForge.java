@@ -70,8 +70,8 @@ public final class VoidedClientForge {
         if (helloDelay >= 0 && --helloDelay == 0) { sendHello(); helloDelay = -1; }
         Minecraft mc = Minecraft.getInstance(); if (mc.player == null || mc.gui.screen() != null) return;
         long now = System.currentTimeMillis();
-        if (ServerContextState.gameplayEnabled() && repair.isDown() && now - lastRepairSent >= REPAIR_REPEAT_MS) { lastRepairSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_REPAIR)); }
-        if (ServerContextState.rpgEnabled() && rpgStats.isDown() && now - lastStatsSent >= 500L) { lastStatsSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS)); }
+        if (ServerContextState.isGameplayEnabled() && repair.isDown() && now - lastRepairSent >= REPAIR_REPEAT_MS) { lastRepairSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_REPAIR)); }
+        if (ServerContextState.isRpgEnabled() && rpgStats.isDown() && now - lastStatsSent >= 500L) { lastStatsSent = now; send(VoidedProtocol.action(VoidedProtocol.ACTION_RPG_STATS)); }
         while (explorationJournal.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_EXPLORATION_JOURNAL));
         while (companion.consumeClick()) send(VoidedProtocol.action(VoidedProtocol.ACTION_COMPANION_HOME));
         castIfPressed(powerStrike, "power-strike"); castIfPressed(bulwark, "bulwark"); castIfPressed(secondWind, "second-wind"); castIfPressed(dash, "dash"); castIfPressed(arcaneSurge, "arcane-surge");
