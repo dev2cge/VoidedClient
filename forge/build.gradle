@@ -15,11 +15,14 @@ dependencies {
     implementation project(':common')
 }
 
+def resolvedModVersion = rootProject.version.toString()
+def resolvedMinecraftVersion = minecraft_version.toString()
+
 processResources {
-    inputs.property 'version', project.version
-    inputs.property 'minecraft_version', minecraft_version
+    inputs.property 'version', resolvedModVersion
+    inputs.property 'minecraft_version', resolvedMinecraftVersion
     filesMatching('META-INF/mods.toml') {
-        expand 'version': project.version, 'minecraft_version': minecraft_version
+        expand 'version': resolvedModVersion, 'minecraft_version': resolvedMinecraftVersion
     }
 }
 
