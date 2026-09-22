@@ -87,8 +87,8 @@ public final class VoidedClientForge {
     }
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("forge", "1.11.0", gameVersion,
-                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_MISSIONS + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_SERVER_CONTEXT + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
+        send(VoidedProtocol.hello("forge", "1.12.0", gameVersion,
+                VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_MISSIONS + "," + VoidedProtocol.CAP_MARKET_COMPANION + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_SERVER_CONTEXT + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
     }
     private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
         if (!context.isClientSide()) return;
@@ -100,6 +100,7 @@ public final class VoidedClientForge {
         if (message.startsWith("VC1|EXPLORATION_CONTRACT|")) { ExplorationContractState state = ExplorationContractState.parse(message); if (state != null) Minecraft.getInstance().gui.setScreen(CompanionScreen.exploreContract(state, VoidedClientForge::send)); }
         if (message.startsWith("VC1|COMPANION_HOME|")) { CompanionHomeState state=CompanionHomeState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.home(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|MISSIONS|")) { MissionsState state=MissionsState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.missions(state,VoidedClientForge::send)); }
+        if (message.startsWith("VC1|MARKET_COMPANION|")) { MarketCompanionState state=MarketCompanionState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.market(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|LEADERBOARD|")) { LeaderboardState state=LeaderboardState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.leaderboard(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|LINKED_ACCOUNTS|")) { LinkedAccountsState state=LinkedAccountsState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.accounts(state,VoidedClientForge::send)); }
         if (message.startsWith("VC1|SERVER_LIST|")) { ServerListState state=ServerListState.parse(message);if(state!=null)Minecraft.getInstance().gui.setScreen(CompanionScreen.servers(state,VoidedClientForge::send)); }

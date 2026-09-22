@@ -14,6 +14,8 @@ public final class VoidedProtocol {
     public static final String ACTION_EXPLORATION_CONTRACT = "exploration.contract";
     public static final String ACTION_COMPANION_HOME = "companion.home";
     public static final String ACTION_MISSIONS_REQUEST = "missions.request";
+    public static final String ACTION_MARKET_COMPANION = "market.companion";
+    public static final String ACTION_MARKET_OPEN = "market.open";
     public static final String ACTION_LEADERBOARD_REQUEST = "leaderboard.request";
     public static final String ACTION_ACCOUNTS_REQUEST = "accounts.request";
     public static final String ACTION_ACCOUNTS_LINK = "accounts.link";
@@ -35,6 +37,7 @@ public final class VoidedProtocol {
     public static final String CAP_EXPLORATION_CONTRACT = "exploration-contract";
     public static final String CAP_COMPANION_HOME = "companion-home-v1";
     public static final String CAP_MISSIONS = "missions-v1";
+    public static final String CAP_MARKET_COMPANION = "market-companion-v1";
     public static final String CAP_LEADERBOARDS = "leaderboards-v1";
     public static final String CAP_LINKED_ACCOUNTS = "linked-accounts-v1";
     public static final String CAP_SERVER_NAVIGATION = "server-navigation-v1";

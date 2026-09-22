@@ -93,3 +93,18 @@ Server state:
 `VC1|MISSIONS|date|earnedToday|id~name~description~progress~target~reward~complete;...`
 
 Mission progress and rewards are always server-authoritative.
+
+
+## Wave 5E Market Companion
+
+Capability:
+`market-companion-v1`
+
+Actions:
+`VC1|ACTION|market.companion`
+`VC1|ACTION|market.open`
+
+Snapshot:
+`VC1|MARKET_COMPANION|networkListings|ownListings|buyListings|sellListings|received|spent|fees|transactions|type~item~amount~price~server;...`
+
+Market state is informational. Physical VoidedCore shops/chests remain authoritative.

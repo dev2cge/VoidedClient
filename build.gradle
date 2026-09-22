@@ -4,7 +4,7 @@ def currentGradle = GradleVersion.current()
 def minimumGradle = GradleVersion.version('9.5.0')
 def maximumGradleExclusive = GradleVersion.version('10.0')
 if (currentGradle < minimumGradle || currentGradle >= maximumGradleExclusive) {
-    throw new GradleException("VoidedClient 1.11.0 targets Minecraft 26.2 and requires Gradle 9.5.x-9.x (wrapper: 9.5.1). Current: ${currentGradle.version}. Use JDK 25 for the Gradle JVM.")
+    throw new GradleException("VoidedClient 1.12.0 targets Minecraft 26.2 and requires Gradle 9.5.x-9.x (wrapper: 9.5.1). Current: ${currentGradle.version}. Use JDK 25 for the Gradle JVM.")
 }
 
 allprojects {
