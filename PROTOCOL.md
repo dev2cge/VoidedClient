@@ -79,3 +79,17 @@ Action: `endgame.companion`
 `VC1|SERVER_CONTEXT|serverId|serverType|edition|rpgEnabled|gameplayEnabled`
 
 Capability: `server-context-v1`. The client treats backend context as unknown/disabled during a Velocity switch until the destination backend sends a fresh context packet.
+
+
+## Missions Companion
+
+Client capability:
+`missions-v1`
+
+Client action:
+`VC1|ACTION|missions.request`
+
+Server state:
+`VC1|MISSIONS|date|earnedToday|id~name~description~progress~target~reward~complete;...`
+
+Mission progress and rewards are always server-authoritative.

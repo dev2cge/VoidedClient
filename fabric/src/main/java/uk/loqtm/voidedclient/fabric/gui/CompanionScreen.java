@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 /** Unified Voided Network companion dashboard. All displayed state is supplied by VoidedCore. */
 public final class CompanionScreen extends Screen {
     private static final int SERVER_PAGE_SIZE = 7;
-    private enum View { HOME, LEADERBOARD, ACCOUNTS, SERVERS, EXPLORE, EXPLORE_CONTRACT, NETHER, END, RPG, ENDGAME }
+    private enum View { HOME, LEADERBOARD, ACCOUNTS, SERVERS, EXPLORE, EXPLORE_CONTRACT, NETHER, END, RPG, ENDGAME, MISSIONS }
 
     private final View view;
     private final Object state;
@@ -28,6 +28,7 @@ public final class CompanionScreen extends Screen {
     }
 
     public static CompanionScreen home(CompanionHomeState state, Consumer<byte[]> send) { return new CompanionScreen(View.HOME, state, send, 0); }
+    public static CompanionScreen missions(MissionsState state, Consumer<byte[]> send) { return new CompanionScreen(View.MISSIONS, state, send, 0); }
     public static CompanionScreen leaderboard(LeaderboardState state, Consumer<byte[]> send) { return new CompanionScreen(View.LEADERBOARD, state, send, 0); }
     public static CompanionScreen accounts(LinkedAccountsState state, Consumer<byte[]> send) { return new CompanionScreen(View.ACCOUNTS, state, send, 0); }
     public static CompanionScreen servers(ServerListState state, Consumer<byte[]> send) { return new CompanionScreen(View.SERVERS, state, send, 0); }
@@ -48,7 +49,7 @@ public final class CompanionScreen extends Screen {
         tab(left + 302, top + 36, 50, "Nether", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_NETHER_COMPANION); });
         tab(left + 356, top + 36, 40, "End", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_END_COMPANION); });
         tab(left + 400, top + 36, 40, "RPG", () -> { if (ServerContextState.isRpgEnabled()) request(VoidedProtocol.ACTION_RPG_STATS); });
-        tab(left + 444, top + 36, 64, "Endgame", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_ENDGAME_COMPANION); });
+        tab(left + 444, top + 36, 64, "Missions", () -> { if (ServerContextState.isGameplayEnabled()) request(VoidedProtocol.ACTION_MISSIONS_REQUEST); });
 
         if (view == View.HOME) initHome(left, top, w);
         else if (view == View.LEADERBOARD) initLeaderboard(left, top, w);
@@ -58,6 +59,7 @@ public final class CompanionScreen extends Screen {
         else if (view == View.END) initEnd(left, top, w);
         else if (view == View.RPG) initRpg(left, top, w);
         else if (view == View.ENDGAME) initEndgame(left, top, w);
+        else if (view == View.MISSIONS) initMissions(left, top, w);
         else initServers(left, top, w);
 
         addRenderableWidget(Button.builder(Component.literal("Close"), b -> minecraft.gui.setScreen(null)).bounds(left + w - 72, top + 266, 60, 22).build());
@@ -67,11 +69,11 @@ public final class CompanionScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("View Leaderboards"), b -> request(VoidedProtocol.ACTION_LEADERBOARD_REQUEST, "balance", "1")).bounds(left + 24, top + 166, 146, 24).build());
         addRenderableWidget(Button.builder(Component.literal("Linked Accounts"), b -> request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST)).bounds(left + 176, top + 166, 146, 24).build());
         addRenderableWidget(Button.builder(Component.literal("Server Browser"), b -> request(VoidedProtocol.ACTION_SERVER_LIST)).bounds(left + 328, top + 166, 146, 24).build());
-        addRenderableWidget(Button.builder(Component.literal("Explore"), b -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)).bounds(left + 24, top + 202, 86, 24).build());
-        addRenderableWidget(Button.builder(Component.literal("Nether"), b -> request(VoidedProtocol.ACTION_NETHER_COMPANION)).bounds(left + 116, top + 202, 82, 24).build());
-        addRenderableWidget(Button.builder(Component.literal("End"), b -> request(VoidedProtocol.ACTION_END_COMPANION)).bounds(left + 204, top + 202, 70, 24).build());
-        addRenderableWidget(Button.builder(Component.literal("RPG"), b -> request(VoidedProtocol.ACTION_RPG_STATS)).bounds(left + 280, top + 202, 70, 24).build());
-        addRenderableWidget(Button.builder(Component.literal("Endgame"), b -> request(VoidedProtocol.ACTION_ENDGAME_COMPANION)).bounds(left + 356, top + 202, 116, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("Missions"), b -> request(VoidedProtocol.ACTION_MISSIONS_REQUEST)).bounds(left + 24, top + 202, 86, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("Explore"), b -> request(VoidedProtocol.ACTION_EXPLORATION_JOURNAL)).bounds(left + 116, top + 202, 82, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("RPG"), b -> request(VoidedProtocol.ACTION_RPG_STATS)).bounds(left + 204, top + 202, 70, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("Endgame"), b -> request(VoidedProtocol.ACTION_ENDGAME_COMPANION)).bounds(left + 280, top + 202, 92, 24).build());
+        addRenderableWidget(Button.builder(Component.literal("Nether / End"), b -> request(VoidedProtocol.ACTION_NETHER_COMPANION)).bounds(left + 378, top + 202, 96, 24).build());
     }
 
     private void initLeaderboard(int left, int top, int w) {
@@ -122,6 +124,10 @@ public final class CompanionScreen extends Screen {
         respec.active = s.spentPoints() > 0 && s.respecCooldownSeconds() == 0L;
         addRenderableWidget(respec);
         addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_RPG_STATS)).bounds(left + 102, top + 240, 78, 20).build());
+    }
+
+    private void initMissions(int left,int top,int w) {
+        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> request(VoidedProtocol.ACTION_MISSIONS_REQUEST)).bounds(left + 24, top + 236, 78, 22).build());
     }
 
     private void initNether(int left, int top, int w) {
@@ -193,6 +199,7 @@ public final class CompanionScreen extends Screen {
         else if (view == View.END) renderEnd(g, left, top, w);
         else if (view == View.RPG) renderRpg(g, left, top, w);
         else if (view == View.ENDGAME) renderEndgame(g, left, top, w);
+        else if (view == View.MISSIONS) renderMissions(g, left, top, w);
         else renderServers(g, left, top, w);
         // Widgets last: keeps every tab/button readable and clickable above the panel.
         super.extractRenderState(g, mouseX, mouseY, delta);
@@ -207,8 +214,25 @@ public final class CompanionScreen extends Screen {
         else if (view == View.NETHER) { x = left + 302; width = 50; }
         else if (view == View.END) { x = left + 356; width = 40; }
         else if (view == View.RPG) { x = left + 400; width = 40; }
-        else if (view == View.ENDGAME) { x = left + 444; width = 64; }
+        else if (view == View.MISSIONS) { x = left + 444; width = 64; }
         g.fill(x, top + 58, x + width, top + 61, 0xFFC4B5FD);
+    }
+
+    private void renderMissions(GuiGraphicsExtractor g,int left,int top,int w) {
+        MissionsState s=(MissionsState)state;
+        g.text(font,"DAILY MISSIONS",left+24,top+78,0xFFE9D5FF,true);
+        g.text(font,"Reset: "+s.date()+"  •  Earned today: "+s.earned(),left+24,top+96,0xFFAAA2B5,false);
+        int y=top+120;
+        for(MissionsState.Entry mission:s.entries()){
+            int boxW=w-48;
+            g.fill(left+24,y-4,left+24+boxW,y+31,0xFF171221);
+            String title=(mission.complete()?"✓ ":"")+mission.name();
+            int titleColor=mission.complete()?0xFF86EFAC:0xFFFFFFFF;
+            g.text(font,title,left+32,y,titleColor,true);
+            String progress=mission.progress()+"/"+mission.target()+"  •  Reward: "+mission.reward();
+            g.text(font,progress,left+32,y+13,0xFFB8B2C4,false);
+            y+=39;
+        }
     }
 
     private void renderHome(GuiGraphicsExtractor g, int left, int top, int w) {
