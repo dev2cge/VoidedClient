@@ -23,6 +23,7 @@ import uk.loqtm.voidedclient.protocol.ExplorationContractState;
 import uk.loqtm.voidedclient.forge.gui.CompanionScreen;
 import uk.loqtm.voidedclient.protocol.CompanionHomeState;
 import uk.loqtm.voidedclient.protocol.MissionsState;
+import uk.loqtm.voidedclient.protocol.MarketCompanionState;
 import uk.loqtm.voidedclient.protocol.LeaderboardState;
 import uk.loqtm.voidedclient.protocol.LinkedAccountsState;
 import uk.loqtm.voidedclient.protocol.ServerListState;
@@ -87,7 +88,7 @@ public final class VoidedClientForge {
     }
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("forge", "1.12.0", gameVersion,
+        send(VoidedProtocol.hello("forge", "1.12.1", gameVersion,
                 VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_MISSIONS + "," + VoidedProtocol.CAP_MARKET_COMPANION + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_SERVER_CONTEXT + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
     }
     private static void receive(RawPayload payload, net.minecraftforge.event.network.CustomPayloadEvent.Context context) {
