@@ -21,7 +21,7 @@ public final class CompanionScreen extends Screen {
     private static final int NAV_Y=38, NAV_ROW_H=24, CONTENT_Y=112, FOOTER_Y=306;
 
     private enum View {
-        HOME, MARKET, MISSIONS, RPG, EXPLORE, EXPLORE_CONTRACT,
+        HOME, MARKET, MISSIONS, SERVICES, RPG, EXPLORE, EXPLORE_CONTRACT,
         NETHER, NETHER_CONTRACT, END, END_CONTRACT,
         SERVERS, LEADERBOARD, ACCOUNTS, ENDGAME
     }
@@ -39,6 +39,7 @@ public final class CompanionScreen extends Screen {
     public static CompanionScreen home(CompanionHomeState s,Consumer<byte[]> send){return new CompanionScreen(View.HOME,s,send,0);}
     public static CompanionScreen market(MarketCompanionState s,Consumer<byte[]> send){return new CompanionScreen(View.MARKET,s,send,0);}
     public static CompanionScreen missions(MissionsState s,Consumer<byte[]> send){return new CompanionScreen(View.MISSIONS,s,send,0);}
+    public static CompanionScreen services(ServicesState s,Consumer<byte[]> send){return new CompanionScreen(View.SERVICES,s,send,0);}
     public static CompanionScreen leaderboard(LeaderboardState s,Consumer<byte[]> send){return new CompanionScreen(View.LEADERBOARD,s,send,0);}
     public static CompanionScreen accounts(LinkedAccountsState s,Consumer<byte[]> send){return new CompanionScreen(View.ACCOUNTS,s,send,0);}
     public static CompanionScreen servers(ServerListState s,Consumer<byte[]> send){return new CompanionScreen(View.SERVERS,s,send,0);}
@@ -62,7 +63,7 @@ public final class CompanionScreen extends Screen {
         nav(left+14,top+NAV_Y+28,100,"Nether",View.NETHER,()->{if(ServerContextState.isGameplayEnabled())request(VoidedProtocol.ACTION_NETHER_COMPANION);});
         nav(left+122,top+NAV_Y+28,100,"End",View.END,()->{if(ServerContextState.isGameplayEnabled())request(VoidedProtocol.ACTION_END_COMPANION);});
         nav(left+230,top+NAV_Y+28,100,"Servers",View.SERVERS,()->request(VoidedProtocol.ACTION_SERVER_LIST));
-        nav(left+338,top+NAV_Y+28,100,"Leaders",View.LEADERBOARD,()->request(VoidedProtocol.ACTION_LEADERBOARD_REQUEST,"balance","1"));
+        nav(left+338,top+NAV_Y+28,100,"Services",View.SERVICES,()->request(VoidedProtocol.ACTION_SERVICES_REQUEST));
         nav(left+446,top+NAV_Y+28,100,"Accounts",View.ACCOUNTS,()->request(VoidedProtocol.ACTION_ACCOUNTS_REQUEST));
 
         if(view==View.EXPLORE||view==View.EXPLORE_CONTRACT)initExplore(left,top,w);
@@ -71,6 +72,7 @@ public final class CompanionScreen extends Screen {
         else if(view==View.HOME)initHome(left,top,w);
         else if(view==View.MARKET)initMarket(left,top,w);
         else if(view==View.MISSIONS)initMissions(left,top,w);
+        else if(view==View.SERVICES)initServices(left,top,w);
         else if(view==View.RPG)initRpg(left,top,w);
         else if(view==View.SERVERS)initServers(left,top,w);
         else if(view==View.LEADERBOARD)initLeaderboard(left,top,w);
@@ -82,8 +84,10 @@ public final class CompanionScreen extends Screen {
     }
 
     private void initHome(int left,int top,int w){
-        addRenderableWidget(Button.builder(Component.literal("Open Endgame"),b->request(VoidedProtocol.ACTION_ENDGAME_COMPANION))
-                .bounds(left+18,top+FOOTER_Y,104,22).build());
+        addRenderableWidget(Button.builder(Component.literal("Leaders"),b->request(VoidedProtocol.ACTION_LEADERBOARD_REQUEST,"balance","1"))
+                .bounds(left+18,top+FOOTER_Y,72,22).build());
+        addRenderableWidget(Button.builder(Component.literal("Endgame"),b->request(VoidedProtocol.ACTION_ENDGAME_COMPANION))
+                .bounds(left+94,top+FOOTER_Y,78,22).build());
         addRenderableWidget(Button.builder(Component.literal("Refresh"),b->request(VoidedProtocol.ACTION_COMPANION_HOME))
                 .bounds(left+w-162,top+FOOTER_Y,78,22).build());
     }
@@ -97,6 +101,19 @@ public final class CompanionScreen extends Screen {
 
     private void initMissions(int left,int top,int w){
         addRenderableWidget(Button.builder(Component.literal("Refresh"),b->request(VoidedProtocol.ACTION_MISSIONS_REQUEST))
+                .bounds(left+w-162,top+FOOTER_Y,78,22).build());
+    }
+
+    private void initServices(int left,int top,int w){
+        ServicesState s=(ServicesState)state;
+        Button ec=Button.builder(Component.literal(s.enderChestUnlocked()?"EC Unlocked":"Unlock EC"),b->request(VoidedProtocol.ACTION_SERVICES_UNLOCK_EC))
+                .bounds(left+18,top+FOOTER_Y,90,22).build();
+        ec.active=!s.enderChestUnlocked();
+        Button pv=Button.builder(Component.literal(s.personalVaultUnlocked()?"PV Unlocked":"Unlock PV"),b->request(VoidedProtocol.ACTION_SERVICES_UNLOCK_PV))
+                .bounds(left+112,top+FOOTER_Y,90,22).build();
+        pv.active=!s.personalVaultUnlocked()&&s.vaultReady();
+        addRenderableWidget(ec);addRenderableWidget(pv);
+        addRenderableWidget(Button.builder(Component.literal("Refresh"),b->request(VoidedProtocol.ACTION_SERVICES_REQUEST))
                 .bounds(left+w-162,top+FOOTER_Y,78,22).build());
     }
 
@@ -238,6 +255,7 @@ public final class CompanionScreen extends Screen {
         if(view==View.HOME)renderHome(g,left,top,w);
         else if(view==View.MARKET)renderMarket(g,left,top,w);
         else if(view==View.MISSIONS)renderMissions(g,left,top,w);
+        else if(view==View.SERVICES)renderServices(g,left,top,w);
         else if(view==View.RPG)renderRpg(g,left,top,w);
         else if(view==View.EXPLORE)renderExplore(g,left,top,w);
         else if(view==View.EXPLORE_CONTRACT)renderExploreContract(g,left,top,w);
@@ -257,6 +275,7 @@ public final class CompanionScreen extends Screen {
         return switch(view){
             case MARKET->"MARKET";
             case MISSIONS->"MISSIONS";
+            case SERVICES->"SERVICES";
             case RPG->"RPG";
             case EXPLORE,EXPLORE_CONTRACT->"EXPLORATION";
             case NETHER,NETHER_CONTRACT->"NETHER";
@@ -305,6 +324,32 @@ public final class CompanionScreen extends Screen {
         }
         if(s.listings().isEmpty())g.text(font,"You do not currently own any player shops.",left+28,rowY,0xFF777080,false);
         g.text(font,"Recent market transactions: "+s.transactions(),left+20,top+286,0xFF777080,false);
+    }
+
+    private void renderServices(GuiGraphicsExtractor g,int left,int top,int w){
+        ServicesState s=(ServicesState)state;
+        int y=top+112;
+        statCard(g,left+20,y,250,"ENDER CHEST ACCESS",
+                s.enderChestUnlocked()?"UNLOCKED":"LOCKED • "+s.enderChestCost(),
+                s.enderChestUnlocked()?0xFF86EFAC:0xFFFBBF24);
+        statCard(g,left+290,y,250,"PERSONAL VAULT",
+                s.personalVaultUnlocked()?"UNLOCKED":(s.vaultReady()?"READY • "+s.personalVaultCost():"LOCKED • "+s.bossesDefeated()+"/"+s.bossesRequired()+" bosses"),
+                s.personalVaultUnlocked()?0xFF86EFAC:s.vaultReady()?0xFFFDE68A:0xFFFF8A80);
+
+        g.text(font,"MAIN BOSS PROGRESSION",left+20,y+56,0xFFE9D5FF,true);
+        if(!s.nextBoss().isEmpty())g.text(font,"Next boss: "+s.nextBoss(),left+w-20-font.width("Next boss: "+s.nextBoss()),y+56,0xFFFDE68A,false);
+
+        int rowY=y+78;
+        int n=1;
+        for(ServicesState.Boss boss:s.bosses()){
+            g.fill(left+20,rowY-3,left+w-20,rowY+18,0xFF171221);
+            int color=boss.defeated()?0xFF86EFAC:boss.available()?0xFFFDE68A:0xFF777080;
+            String marker=boss.defeated()?"✓":boss.available()?"→":"✗";
+            g.text(font,n+". "+marker+" "+boss.name(),left+30,rowY,color,boss.available()||boss.defeated());
+            String state=boss.defeated()?"DEFEATED":boss.available()?"CURRENT":"LOCKED";
+            g.text(font,state,left+w-30-font.width(state),rowY,color,false);
+            rowY+=23;n++;
+        }
     }
 
     private void renderMissions(GuiGraphicsExtractor g,int left,int top,int w){

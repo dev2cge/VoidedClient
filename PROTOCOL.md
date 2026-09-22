@@ -108,3 +108,19 @@ Snapshot:
 `VC1|MARKET_COMPANION|networkListings|ownListings|buyListings|sellListings|received|spent|fees|transactions|type~item~amount~price~server;...`
 
 Market state is informational. Physical VoidedCore shops/chests remain authoritative.
+
+
+## Wave 5 Services Companion
+
+Capability:
+`services-companion-v1`
+
+Actions:
+`VC1|ACTION|services.request`
+`VC1|ACTION|services.unlock.enderchest`
+`VC1|ACTION|services.unlock.personalvault`
+
+Snapshot:
+`VC1|SERVICES|ecUnlocked|ecCost|pvUnlocked|pvCost|pvReady|bossesDefeated|bossesRequired|nextBoss|id~name~defeated~available;...`
+
+All unlock purchases, boss progression checks and currency deductions are server-authoritative.

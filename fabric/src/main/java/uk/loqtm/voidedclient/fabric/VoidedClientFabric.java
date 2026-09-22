@@ -26,6 +26,7 @@ import uk.loqtm.voidedclient.fabric.gui.CompanionScreen;
 import uk.loqtm.voidedclient.protocol.CompanionHomeState;
 import uk.loqtm.voidedclient.protocol.MissionsState;
 import uk.loqtm.voidedclient.protocol.MarketCompanionState;
+import uk.loqtm.voidedclient.protocol.ServicesState;
 import uk.loqtm.voidedclient.protocol.LeaderboardState;
 import uk.loqtm.voidedclient.protocol.LinkedAccountsState;
 import uk.loqtm.voidedclient.protocol.ServerListState;
@@ -78,6 +79,7 @@ public final class VoidedClientFabric implements ClientModInitializer {
             if (message.startsWith("VC1|COMPANION_HOME|")) { CompanionHomeState state=CompanionHomeState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.home(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|MISSIONS|")) { MissionsState state=MissionsState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.missions(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|MARKET_COMPANION|")) { MarketCompanionState state=MarketCompanionState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.market(state,VoidedClientFabric::send))); }
+            if (message.startsWith("VC1|SERVICES|")) { ServicesState state=ServicesState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.services(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|LEADERBOARD|")) { LeaderboardState state=LeaderboardState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.leaderboard(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|LINKED_ACCOUNTS|")) { LinkedAccountsState state=LinkedAccountsState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.accounts(state,VoidedClientFabric::send))); }
             if (message.startsWith("VC1|SERVER_LIST|")) { ServerListState state=ServerListState.parse(message); if(state!=null)context.client().execute(()->context.client().gui.setScreen(CompanionScreen.servers(state,VoidedClientFabric::send))); }
@@ -125,8 +127,8 @@ public final class VoidedClientFabric implements ClientModInitializer {
     }
     private static void sendHello() {
         String gameVersion; try { gameVersion = SharedConstants.getCurrentVersion().id(); } catch (Throwable ignored) { gameVersion = "26.2"; }
-        send(VoidedProtocol.hello("fabric", "1.12.1", gameVersion,
-                VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_MISSIONS + "," + VoidedProtocol.CAP_MARKET_COMPANION + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_SERVER_CONTEXT + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
+        send(VoidedProtocol.hello("fabric", "1.13.0", gameVersion,
+                VoidedProtocol.CAP_RPG_UI + "," + VoidedProtocol.CAP_RPG_STAT_SPEND + "," + VoidedProtocol.CAP_RPG_STAT_RESPEC + "," + VoidedProtocol.CAP_RPG_STATS_V2 + "," + VoidedProtocol.CAP_RPG_STATS_V3 + "," + VoidedProtocol.CAP_RPG_HUD + "," + VoidedProtocol.CAP_RPG_SKILLS + "," + VoidedProtocol.CAP_RPG_SKILL_FX + "," + VoidedProtocol.CAP_EXPLORATION_JOURNAL + "," + VoidedProtocol.CAP_EXPLORATION_CONTRACT + "," + VoidedProtocol.CAP_COMPANION_HOME + "," + VoidedProtocol.CAP_MISSIONS + "," + VoidedProtocol.CAP_MARKET_COMPANION + "," + VoidedProtocol.CAP_SERVICES_COMPANION + "," + VoidedProtocol.CAP_LEADERBOARDS + "," + VoidedProtocol.CAP_LINKED_ACCOUNTS + "," + VoidedProtocol.CAP_SERVER_NAVIGATION + "," + VoidedProtocol.CAP_SERVER_CONTEXT + "," + VoidedProtocol.CAP_NETHER_COMPANION + "," + VoidedProtocol.CAP_END_COMPANION + "," + VoidedProtocol.CAP_ENDGAME_COMPANION));
     }
     private static void send(byte[] bytes) { try { ClientPlayNetworking.send(new RawPayload(bytes)); } catch (Throwable ignored) {} }
 
