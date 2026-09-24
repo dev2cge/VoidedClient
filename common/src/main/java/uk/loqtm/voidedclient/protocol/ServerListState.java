@@ -13,7 +13,23 @@ public record ServerListState(List<Entry> entries){
         try{
             if(!body.isEmpty())for(String row:body.split(";")){
                 String[]v=row.split("~",-1);
-                if(v.length>=4)out.add(new Entry(v[0],v[1],Integer.parseInt(v[2]),Boolean.parseBoolean(v[3]),v.length<5||Boolean.parseBoolean(v[4])));
+                if(v.length>=4){
+                    String id=v[0];
+                    String name=v[1];
+                    int online=Integer.parseInt(v[2]);
+                    boolean current=Boolean.parseBoolean(v[3]);
+                    boolean available=v.length<5||Boolean.parseBoolean(v[4]);
+
+                    // Compatibility guard for pre-Hub-1.5.3 packets. The old reserved
+                    // factions slot is currently a neutral Coming Soon destination.
+                    if("factions-1".equalsIgnoreCase(id)){
+                        name="Coming Soon!";
+                        online=0;
+                        available=false;
+                    }
+
+                    out.add(new Entry(id,name,online,current,available));
+                }
             }
             return new ServerListState(Collections.unmodifiableList(out));
         }catch(RuntimeException ignored){return null;}
